@@ -1,0 +1,99 @@
+standard = "software-project-standardizer/1.1.1"
+brand = "SpecMeld"
+name = "legal-consult-mini-app"
+mode = "greenfield"
+profile = "standard"
+archetype = "mini-program"
+lifecycle = "production"
+stage = "G1_BUILD_READY"
+
+[owners]
+product = "Product Owner"
+engineering = "Engineering Owner"
+release = ""
+operations = ""
+
+[truth]
+project = "docs/PROJECT.md"
+product = "docs/PRODUCT.md"
+system = "docs/SYSTEM.md"
+delivery = "docs/DELIVERY.md"
+handover = ""
+
+[engineering_pack]
+status = "DEVELOPMENT_READY"
+root = "docs/engineering"
+index = "docs/engineering/ENGINEERING_INDEX.md"
+entry = "docs/engineering/IMPLEMENTATION_ENTRY.md"
+plan = "docs/engineering/IMPLEMENTATION_PLAN.md"
+acceptance = "docs/engineering/acceptance/ACCEPTANCE.md"
+baseline_sha = ""
+last_converged_sha = ""
+
+[artifact_paths]
+changes = "changes"
+decisions = "decisions"
+engineering_specs = "docs/engineering/specs"
+lld = "docs/engineering/lld"
+work = "docs/engineering/work"
+acceptance = "docs/engineering/acceptance"
+contracts = "contracts"
+schemas = "schemas"
+solution_overview = "docs/SOLUTION_OVERVIEW.md"
+handover = "docs/HANDOVER.md"
+pull_request_template = ".github/pull_request_template.md"
+
+[governance]
+default_level = "auto"
+progressive = true
+
+[collaboration]
+mode = "single"
+provider = "github"
+work_isolation = "branch_or_worktree"
+integration_strategy = "pull_request"
+merge_authority = ""
+merge_queue = "disabled"
+shared_hotspot_policy = "serialize_or_extract_boundary"
+force_push = "explicit_approval_only"
+
+[release]
+uat_signed_by = ""
+
+[coverage]
+product_ux = "APPLICABLE"
+architecture_code = "APPLICABLE"
+data_storage = "APPLICABLE"
+api_integration = "APPLICABLE"
+runtime_infrastructure = "APPLICABLE"
+security_supply_chain = "APPLICABLE"
+quality_delivery = "APPLICABLE"
+reliability_operations = "DEFERRED"
+organization_change = "APPLICABLE"
+conditional = "APPLICABLE"
+
+[coverage_notes]
+product_ux = "WeChat mini-program consult flow plus MOBILE_MINI_PROGRAM platform constraints"
+architecture_code = "mini-program client plus API service and bounded AI advisory module"
+data_storage = "consult session and consent/audit metadata are authoritative in relational storage"
+api_integration = "HTTP API plus model provider; payment is out of current execution scope"
+runtime_infrastructure = "managed API target and mini-program client release pipeline"
+security_supply_chain = "PII minimization, access control, consent/audit, dependency pinning"
+quality_delivery = "contract, security, AI eval and mini-program device checks required"
+reliability_operations = "owner=Engineering Owner; trigger=before G3; target=G3_RELEASE_READY"
+organization_change = "single implementer example with review before release"
+conditional = "AI=APPLICABLE; compliance=APPLICABLE; payments=DEFERRED; owner=Product Owner; trigger=when payment collection enters scope; target=before payment design/build"
+
+[native_truth]
+api = ["contracts/openapi.yaml"]
+database = []
+containers = []
+infrastructure = []
+ci_cd = []
+design = []
+dependencies = []
+tests = []
+ai = ["docs/engineering/specs/AI_QA.md"]
+
+[unknowns]
+items = []

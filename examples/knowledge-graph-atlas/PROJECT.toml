@@ -1,0 +1,99 @@
+standard = "software-project-standardizer/1.1.1"
+brand = "SpecMeld"
+name = "knowledge-graph-atlas"
+mode = "greenfield"
+profile = "standard"
+archetype = "data"
+lifecycle = "production"
+stage = "G1_BUILD_READY"
+
+[owners]
+product = "Research Product Owner"
+engineering = "Data Engineering Owner"
+release = ""
+operations = ""
+
+[truth]
+project = "docs/PROJECT.md"
+product = "docs/PRODUCT.md"
+system = "docs/SYSTEM.md"
+delivery = "docs/DELIVERY.md"
+handover = ""
+
+[engineering_pack]
+status = "DEVELOPMENT_READY"
+root = "docs/engineering"
+index = "docs/engineering/ENGINEERING_INDEX.md"
+entry = "docs/engineering/IMPLEMENTATION_ENTRY.md"
+plan = "docs/engineering/IMPLEMENTATION_PLAN.md"
+acceptance = "docs/engineering/acceptance/ACCEPTANCE.md"
+baseline_sha = ""
+last_converged_sha = ""
+
+[artifact_paths]
+changes = "changes"
+decisions = "decisions"
+engineering_specs = "docs/engineering/specs"
+lld = "docs/engineering/lld"
+work = "docs/engineering/work"
+acceptance = "docs/engineering/acceptance"
+contracts = "contracts"
+schemas = "schemas"
+solution_overview = "docs/SOLUTION_OVERVIEW.md"
+handover = "docs/HANDOVER.md"
+pull_request_template = ".github/pull_request_template.md"
+
+[governance]
+default_level = "auto"
+progressive = true
+
+[collaboration]
+mode = "single"
+provider = "local"
+work_isolation = "branch_or_worktree"
+integration_strategy = "pull_request"
+merge_authority = ""
+merge_queue = "disabled"
+shared_hotspot_policy = "serialize_or_extract_boundary"
+force_push = "explicit_approval_only"
+
+[release]
+uat_signed_by = ""
+
+[coverage]
+product_ux = "APPLICABLE"
+architecture_code = "APPLICABLE"
+data_storage = "APPLICABLE"
+api_integration = "NOT_APPLICABLE"
+runtime_infrastructure = "APPLICABLE"
+security_supply_chain = "APPLICABLE"
+quality_delivery = "APPLICABLE"
+reliability_operations = "DEFERRED"
+organization_change = "APPLICABLE"
+conditional = "NOT_APPLICABLE"
+
+[coverage_notes]
+product_ux = "research graph query and evidence inspection flow"
+architecture_code = "pipeline stages and canonical/projection boundaries"
+data_storage = "source/raw/observation/evidence/canonical/graph lineage and quality"
+api_integration = "initial release is batch ingestion plus local query; no public service API"
+runtime_infrastructure = "repeatable local batch jobs and graph projection runtime"
+security_supply_chain = "source licensing/provenance, dependency pinning, no credential material in docs"
+quality_delivery = "fixture, lineage, entity-resolution and rebuild tests"
+reliability_operations = "owner=Data Engineering Owner; trigger=before G3; target=G3_RELEASE_READY"
+organization_change = "single-team example; canonical and projection ownership remain explicit"
+conditional = "no AI/analytics/payment/client-handover conditional domain in initial scope"
+
+[native_truth]
+api = []
+database = ["schemas/001_graph_core.sql"]
+containers = []
+infrastructure = []
+ci_cd = []
+design = []
+dependencies = []
+tests = []
+ai = []
+
+[unknowns]
+items = []

@@ -1,0 +1,10 @@
+openapi: 3.0.3
+info: {title: Legal Consult Mini App API, version: 1.0.0}
+paths:
+  /consults:
+    post:
+      description: Create one idempotent consult session after consent.
+      responses: {'201': {description: Created}}
+  /consults/{id}:
+    get:
+      responses: {'200': {description: User-owned consult state}}

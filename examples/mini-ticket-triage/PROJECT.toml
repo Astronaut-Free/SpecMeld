@@ -1,0 +1,98 @@
+standard = "software-project-standardizer/1.1.1"
+brand = "SpecMeld"
+name = "mini-ticket-triage"
+mode = "greenfield"
+profile = "standard"
+archetype = "ai"
+lifecycle = "production"
+stage = "G1_BUILD_READY"
+
+[owners]
+product = "Product Owner"
+engineering = "Engineering Owner"
+release = ""
+operations = ""
+
+[truth]
+product = "docs/PRODUCT.md"
+system = "docs/SYSTEM.md"
+delivery = "docs/DELIVERY.md"
+handover = ""
+
+[engineering_pack]
+status = "DEVELOPMENT_READY"
+root = "docs/engineering"
+index = "docs/engineering/ENGINEERING_INDEX.md"
+entry = "docs/engineering/IMPLEMENTATION_ENTRY.md"
+plan = "docs/engineering/IMPLEMENTATION_PLAN.md"
+acceptance = "docs/engineering/acceptance/ACCEPTANCE.md"
+baseline_sha = ""
+last_converged_sha = ""
+
+[artifact_paths]
+changes = "changes"
+decisions = "decisions"
+engineering_specs = "docs/engineering/specs"
+lld = "docs/engineering/lld"
+work = "docs/engineering/work"
+acceptance = "docs/engineering/acceptance"
+contracts = "contracts"
+schemas = "schemas"
+solution_overview = "docs/SOLUTION_OVERVIEW.md"
+handover = "docs/HANDOVER.md"
+pull_request_template = ".github/pull_request_template.md"
+
+[governance]
+default_level = "auto"
+progressive = true
+
+[collaboration]
+mode = "single"
+provider = "github"
+work_isolation = "branch_or_worktree"
+integration_strategy = "pull_request"
+merge_authority = ""
+merge_queue = "disabled"
+shared_hotspot_policy = "serialize_or_extract_boundary"
+force_push = "explicit_approval_only"
+
+[release]
+uat_signed_by = ""
+
+[coverage]
+product_ux = "APPLICABLE"
+architecture_code = "APPLICABLE"
+data_storage = "APPLICABLE"
+api_integration = "APPLICABLE"
+runtime_infrastructure = "APPLICABLE"
+security_supply_chain = "APPLICABLE"
+quality_delivery = "APPLICABLE"
+reliability_operations = "DEFERRED"
+organization_change = "APPLICABLE"
+conditional = "APPLICABLE"
+
+[coverage_notes]
+product_ux = "ticket submit/result flow"
+architecture_code = "modular monolith plus async inference worker"
+data_storage = "PostgreSQL authoritative ticket state"
+api_integration = "HTTP API plus provider model API"
+runtime_infrastructure = "Docker local; managed container target"
+security_supply_chain = "role-based internal access and dependency pinning"
+quality_delivery = "contract/integration/eval required"
+reliability_operations = "owner=Engineering Owner; trigger=before G3; target=G3_RELEASE_READY"
+organization_change = "single implementer in example"
+conditional = "AI eval and fallback apply"
+
+[native_truth]
+api = ["contracts/openapi.yaml"]
+database = ["schemas/001_create_ticket.sql"]
+containers = []
+infrastructure = []
+ci_cd = []
+design = []
+dependencies = []
+tests = []
+ai = ["docs/engineering/specs/AI_TRIAGE.md"]
+
+[unknowns]
+items = []

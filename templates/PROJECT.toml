@@ -1,0 +1,109 @@
+standard = "software-project-standardizer/1.1.1"
+brand = "SpecMeld"
+name = "__PROJECT_NAME__"
+mode = "__MODE__" # greenfield | brownfield | client
+profile = "__PROFILE__" # nano | lite | standard | critical
+archetype = "__ARCHETYPE__" # web | mobile | mini-program | api | saas | ai | data | platform | library | internal | custom
+lifecycle = "production" # prototype | production | maintained | migration | sunset
+stage = "G0_INTENT_STABLE"
+
+[owners]
+product = ""
+engineering = ""
+release = ""
+operations = ""
+
+[truth]
+project = "docs/PROJECT.md" # nano profile only
+product = "docs/PRODUCT.md"
+system = "docs/SYSTEM.md"
+delivery = "docs/DELIVERY.md"
+handover = ""
+
+[engineering_pack]
+status = "NOT_COMPILED" # NOT_COMPILED | DRAFT | DEVELOPMENT_READY | STALE | CONVERGED
+root = "docs/engineering"
+index = "docs/engineering/ENGINEERING_INDEX.md"
+entry = "docs/engineering/IMPLEMENTATION_ENTRY.md"
+plan = "docs/engineering/IMPLEMENTATION_PLAN.md"
+acceptance = "docs/engineering/acceptance/ACCEPTANCE.md"
+baseline_sha = ""
+last_converged_sha = ""
+
+[artifact_paths]
+changes = "changes"
+decisions = "decisions"
+engineering_specs = "docs/engineering/specs"
+lld = "docs/engineering/lld"
+work = "docs/engineering/work"
+acceptance = "docs/engineering/acceptance"
+contracts = "contracts"
+schemas = "schemas"
+solution_overview = "docs/SOLUTION_OVERVIEW.md"
+handover = "docs/HANDOVER.md"
+pull_request_template = ".github/pull_request_template.md"
+
+
+[governance]
+default_level = "auto" # auto | L1 | L2 | L3; change/WP can override per surface
+progressive = true
+
+[collaboration]
+mode = "single" # single | multi-human | multi-agent | hybrid
+provider = "github" # github | gitlab | gitee | local
+work_isolation = "branch_or_worktree"
+integration_strategy = "pull_request"
+merge_authority = "" # human or designated Integrator / Integration Agent
+merge_queue = "auto" # auto | required | disabled
+shared_hotspot_policy = "serialize_or_extract_boundary"
+force_push = "explicit_approval_only"
+
+[release]
+uat_signed_by = ""
+
+[coverage]
+product_ux = "APPLICABLE"
+architecture_code = "APPLICABLE"
+data_storage = "UNKNOWN"
+api_integration = "UNKNOWN"
+runtime_infrastructure = "UNKNOWN"
+security_supply_chain = "APPLICABLE"
+quality_delivery = "APPLICABLE"
+reliability_operations = "UNKNOWN"
+organization_change = "APPLICABLE"
+conditional = "UNKNOWN"
+
+[coverage_notes]
+product_ux = ""
+architecture_code = ""
+data_storage = "verify persistence needs before G1"
+api_integration = "verify service/integration needs before G1"
+runtime_infrastructure = "verify runtime/deployment needs before G1"
+security_supply_chain = ""
+quality_delivery = ""
+reliability_operations = "decide operational depth before production"
+organization_change = ""
+conditional = "decide AI/analytics/cost/compliance/handover applicability"
+
+[native_truth]
+api = []
+database = []
+containers = []
+infrastructure = []
+ci_cd = []
+design = []
+dependencies = []
+tests = []
+ai = []
+
+[unknowns]
+# Any remaining item is treated as G1-blocking. Non-blocking future work should be DEFERRED in coverage or a tracked Change.
+items = []
+
+# [[exception]]
+# id = "EX-001"
+# reason = ""
+# owner = ""
+# risk = ""
+# expires = "YYYY-MM-DD"
+# compensating_control = ""

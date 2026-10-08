@@ -1,0 +1,20 @@
+openapi: 3.0.3
+info:
+  title: Mini Ticket Triage API
+  version: 1.0.0
+paths:
+  /tickets:
+    post:
+      responses:
+        '201':
+          description: Ticket created
+  /tickets/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Ticket state
