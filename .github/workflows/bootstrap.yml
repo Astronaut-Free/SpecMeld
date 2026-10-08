@@ -1,0 +1,36 @@
+name: Bootstrap SpecMeld source
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: github.event.head_commit.message == 'chore: bootstrap SpecMeld source'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Unpack SpecMeld v1.1.1
+        run: |
+          set -euo pipefail
+          rm -rf _bootstrap
+          mkdir _bootstrap
+          unzip -q specmeld-skill-v1.1.1.zip -d _bootstrap
+          rsync -a --exclude='.github/' _bootstrap/software-project-standardizer/ ./
+          rm -rf _bootstrap
+          rm -f specmeld-skill-v1.1.1.zip
+
+      - name: Commit published source
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: publish SpecMeld v1.1.1"
+          git push origin HEAD:main
