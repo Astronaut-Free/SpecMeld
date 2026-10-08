@@ -227,7 +227,8 @@ class ToolingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
             shutil.copytree(GOLDEN, project)
-            (project / "decisions").mkdir(parents=True, exist_ok=True)\n            (project / "decisions/ADR-0099.md").write_text("# ADR\\nowner: Engineering Owner\\n\\n## Context\\nChoose storage.\\n\\n## Decision\\nUse SQL.\\n", encoding="utf-8")
+            (project / "decisions").mkdir(parents=True, exist_ok=True)
+            (project / "decisions/ADR-0099.md").write_text("# ADR\nowner: Engineering Owner\n\n## Context\nChoose storage.\n\n## Decision\nUse SQL.\n", encoding="utf-8")
             cp = run(DOCTOR, project)
             self.assertEqual(cp.returncode, 0, cp.stderr + cp.stdout)
             self.assertIn("ADR has no alternatives/options list", cp.stdout)
