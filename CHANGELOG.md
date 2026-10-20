@@ -6,6 +6,7 @@
 - Added proactive asset reuse, UI representative page, real vertical slice, owner-approved business oracle and delta test obligations without additional fixed documents.
 - Scoped diagnostics and improved security false positives/coverage and Brownfield baseline verification.
 - Added regression cases for premature VERIFIED, mock-only completion, false secrets, missing evidence, and gated acceptance.
+- Added anonymized agent-level evaluation scenarios (declared NOT_RUN pending controlled A/B execution).
 
 
 

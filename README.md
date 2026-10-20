@@ -14,6 +14,8 @@ New Work Packets may use `verification_contract: v1`: `READY` requires owner-app
 
 G0 passing means intent-stage checks completed; it **does not** indicate G1 readiness or deployed functionality. Existing v1.x project Packs remain readable and may adopt the new WP contract progressively.
 
+The agent-level evaluation prompts live under [`evals/`](evals/). Their initial status is **NOT_RUN**; CI validates structure, not real-world agent gains.
+
 ## What it solves
 
 SpecMeld is not a template library for mass-producing engineering documents. It focuses on five things:

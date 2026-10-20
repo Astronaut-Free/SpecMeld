@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "suite": "specmeld-behavioral-execution-evals",
+  "execution_status": "NOT_RUN",
+  "purpose": "Agent-level A/B evaluation prompts; not evidence of skill effectiveness until executed.",
+  "cases": [
+    {
+      "id": "UI-REUSE-001",
+      "area": "Frontend asset selection",
+      "risk": "greenfield-l2",
+      "prompt": "Build a management dashboard; make it attractive and usable.",
+      "expected_observable_behaviors": [
+        "inspect actual framework/dependencies and reusable components",
+        "recommend concrete candidate and integration location",
+        "plan representative runnable page covering normal/loading/empty/error/long-content states"
+      ],
+      "failure_signals": [
+        "invent framework or library without repo inspection",
+        "require user to know component names before the agent can proceed"
+      ]
+    },
+    {
+      "id": "UI-EXISTING-002",
+      "area": "Existing UI diagnosis",
+      "risk": "brownfield-l1",
+      "prompt": "Our existing dashboard works but looks crowded and inconsistent.",
+      "expected_observable_behaviors": [
+        "inspect existing component system before replacing",
+        "identify concrete hierarchy, layout, responsiveness or visual-state causes",
+        "propose smallest verified change"
+      ],
+      "failure_signals": [
+        "force full design-system migration",
+        "demand an ADR for a low-risk style tweak"
+      ]
+    },
+    {
+      "id": "API-PERSIST-003",
+      "area": "API success without persistent result",
+      "risk": "brownfield-l2",
+      "prompt": "Create-job API returns 200 with an id but database record is absent.",
+      "expected_observable_behaviors": [
+        "define acceptance against API plus durable readback",
+        "reject verified when API-only success is offered",
+        "schedule negative evidence of failure"
+      ],
+      "failure_signals": [
+        "call 200 response business completion"
+      ]
+    },
+    {
+      "id": "MOCK-REAL-004",
+      "area": "Mocked UI disconnected from real backend",
+      "risk": "greenfield-l2",
+      "prompt": "The demo page shows task completion using a stub service; the real backend is not wired.",
+      "expected_observable_behaviors": [
+        "explicitly record mocked scope",
+        "keep real integration pending",
+        "do not claim end-to-end completion"
+      ],
+      "failure_signals": [
+        "accept mock proof as real integration"
+      ]
+    },
+    {
+      "id": "EMPTY-VALID-005",
+      "area": "Correct empty result",
+      "risk": "brownfield-l1",
+      "prompt": "A query on an empty source should return [] legitimately.",
+      "expected_observable_behaviors": [
+        "treat empty result as valid when oracle expects zero",
+        "do not use return [] as a blind defect rule"
+      ],
+      "failure_signals": [
+        "flag all empty outputs as errors"
+      ]
+    },
+    {
+      "id": "READY-NO-RUN-006",
+      "area": "Ready before implementation",
+      "risk": "greenfield-l2",
+      "prompt": "A new WP has approved scenarios and planned tests, but its implementation has not started.",
+      "expected_observable_behaviors": [
+        "allow READY when scope and acceptance plan are complete",
+        "leave test execution NOT_RUN",
+        "do not label VERIFIED"
+      ],
+      "failure_signals": [
+        "require past test PASS to become READY"
+      ]
+    },
+    {
+      "id": "FALSE-VERIFIED-007",
+      "area": "False completion evidence",
+      "risk": "brownfield-l2",
+      "prompt": "Builder says 140 tests pass for new handler, but all tests predate it and no current SHA or run locator is supplied.",
+      "expected_observable_behaviors": [
+        "reject VERIFIED without per-case changed-behavior evidence",
+        "separate regression baseline from new behavior proof",
+        "request exact SHA, environment and run references"
+      ],
+      "failure_signals": [
+        "claim new handler verified solely because old tests are green"
+      ]
+    },
+    {
+      "id": "NANO-LIGHT-008",
+      "area": "Lightweight unrelated changes",
+      "risk": "nano-l1",
+      "prompt": "Change the help text in a CLI flag and verify it prints correctly.",
+      "expected_observable_behaviors": [
+        "choose minimal relevant verification",
+        "avoid UI, API, broad Brownfield gate and multi-review by default"
+      ],
+      "failure_signals": [
+        "create 15 engineering docs for minor help text"
+      ]
+    },
+    {
+      "id": "ASYNC-STATUS-009",
+      "area": "Accepted vs completed",
+      "risk": "brownfield-l2",
+      "prompt": "A queue job returns accepted but the worker has not processed it.",
+      "expected_observable_behaviors": [
+        "distinguish 202 accepted from persisted completed result",
+        "define failure/retry and state observation",
+        "keep completion unverified until actual processing"
+      ],
+      "failure_signals": [
+        "treat enqueue success as complete"
+      ]
+    },
+    {
+      "id": "DATA-PHASE-010",
+      "area": "Cross-layer partial-success boundary",
+      "risk": "brownfield-l3",
+      "prompt": "A collector may keep 98 valid rows of 100, but the downstream certified admission rejects any malformed batch.",
+      "expected_observable_behaviors": [
+        "map layer-specific atomicity and error statuses",
+        "produce negative oracle agreed by domain authority",
+        "ensure no false demand record from malformed admission"
+      ],
+      "failure_signals": [
+        "unify all layers to one vague partial success rule"
+      ]
+    },
+    {
+      "id": "REBUILD-011",
+      "area": "Event-driven downstream correctness",
+      "risk": "brownfield-l3",
+      "prompt": "A merge event touches identity, graph edges, adjacency, search and checkpoints in a versioned projection.",
+      "expected_observable_behaviors": [
+        "audit actual recompute capability before handler coding",
+        "define replay/concurrency/version-scoped assertions",
+        "execute whole-chain integration or keep scope partial"
+      ],
+      "failure_signals": [
+        "claim merge complete after updating only one projection",
+        "assume all green old database tests prove new merge behavior"
+      ]
+    }
+  ]
+}

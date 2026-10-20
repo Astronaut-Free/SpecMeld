@@ -629,6 +629,17 @@ class BehaviorGateTests(unittest.TestCase):
             self.assertNotEqual(cp.returncode, 0)
             self.assertIn("baseline_sha", cp.stdout)
 
+    def test_agent_eval_catalog_declares_not_run_and_expected_oracles(self):
+        import json
+        info = json.loads((ROOT / "evals/scenarios.json").read_text(encoding="utf-8"))
+        self.assertEqual(info["execution_status"], "NOT_RUN")
+        self.assertGreaterEqual(len(info["cases"]), 8)
+        self.assertEqual(len({case["id"] for case in info["cases"]}), len(info["cases"]))
+        for case in info["cases"]:
+            self.assertTrue(case["prompt"])
+            self.assertTrue(case["expected_observable_behaviors"])
+            self.assertTrue(case["failure_signals"])
+
     def test_release_vision_remains_small_and_agent_neutral(self):
         compiler = (ROOT / "references/COMPILER.md").read_text(encoding="utf-8")
         execution = (ROOT / "references/EXECUTION.md").read_text(encoding="utf-8")

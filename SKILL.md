@@ -360,3 +360,5 @@ Nano 只交付 `PROJECT.toml + docs/PROJECT.md` 并运行轻量 doctor。非 nan
 - `references/BENCHMARKS.md`
 
 模板位于 `templates/`；工具位于 `scripts/`；可运行测试位于 `tests/`；golden examples 位于 `examples/`。
+
+`evals/scenarios.json` 是独立 Agent 真实任务评测候选集，默认 `NOT_RUN`；不可将 JSON 用例存在误报为 Agent 实测通过。
