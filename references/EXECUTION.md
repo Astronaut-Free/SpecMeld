@@ -24,6 +24,18 @@
 
 优先使用 harness 原生隔离；否则遵循 repo 的 branch/worktree 方式。开始前记录 clean baseline build/test 状态。
 
+## Pre-Build Capability/Contract Reality Binding
+
+Before implementation, a responsible Agent inventories existing capabilities (REAL/PARTIAL/MISSING), current code/producer/consumer event shapes, Frozen Authority, schema/constraints/grants and downstream state. Record source paths and baseline SHA; compare planned scope to approved Phase boundaries. Missing capabilities must either become explicit dependencies or remain a correctly described scaffold/deliverable; do not silently reduce business scope.
+
+## Delta Verification Before Handoff
+
+Pre-agree test seams; attach an owner-approved, falsifiable expected result to each critical behavior. Build vertical slices, preferably red → green. For changed behavior prove the behavior through the appropriate real interface: API/worker/CLI/browser, plus DB constraint/permission, concurrency, replay or failure tests where justified. API is an entrypoint, not a separate completeness level; API-only products can be end-to-end. New tests need not be new files, but **old green test counts alone are not evidence of new behavior**.
+
+Separate `ACCEPTED` (queued) from `COMPLETED` (processed/persisted); real data from mocks; valid empty output from silently missing expected records; code `BUILT` from run `VERIFIED`. Record test command, actual outcome, environment, SHA, evidence locator, untested scope and recovery. Reviewer reads original contract + actual code, not only Builder notes. Integrator does a comprehensive first pass; focused rereviews reopen only material correctness/security blockers or regressions.
+
+For `verification_contract: v1`, `doctor.py` enforces the presence and cross-reference of scenario/evidence rows at the appropriate WP state; **it does not execute tests, prove claims, or validate business oracle correctness**.
+
 ## Review
 
 先看 spec/contract compliance，再看 code quality。根据 Change 自动选择 Product / UX / Engineering / Security-Quality / Release-Ops lenses。

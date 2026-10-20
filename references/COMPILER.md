@@ -26,6 +26,18 @@
 18. Generate stakeholder/executive view when the project has client/business audiences
 19. Run G1 consistency audit
 
+## 2.0 Behavior-First Compiler (V1.2)
+
+Trigger: nontrivial feature, cross-layer workflow, user-visible state, external data trust, async processing or L2/L3 critical surface. For local/nano tweaks only capture the simplest sufficient acceptance statement.
+
+1. **Inventory before selection:** inspect actual repo dependencies, runtime/framework, design system, reusable page/controls/template, mature OSS/service candidates; reuse existing suitable assets first. The Agent proactively recommends a concrete choice and explains limitation/fit, without outsourcing technical terminology to the user.
+2. **Behavior + Oracle:** map approved user/business need → affected capabilities → exact input/state/action → observable expected outcome → counterexample/failure state → test seam → responsible owner. Business expectations confirmed separately from Builder implementation; test asserts must not copy current outputs.
+3. **Scope typing:** mark `behavior` vs `scaffold` vs `design` vs `investigation`; skeleton delivery is not end-to-end acceptance. Validate whether current helper/function truly does every claimed downstream state update.
+4. **Test allocation:** select suitable unit/contract/integration/e2e/security/performance/real Postgres tests and explicit delegated owners. An API-first integration path can be E2E without UI. Evaluate actual new/changed behavior rather than count files/tests.
+5. **Early vertical slice:** plan one minimal realistic intake → API/handler → persistence → status → user/consumer readback, with integration owner and early check, before mass parallel feature expansion. For UI-heavy work, first select reuse candidates and a representative page showing realistic, loading, empty, error and long-content states, then scale the pattern. Only ask a human to adjudicate meaningful experience or budget trade-offs.
+6. **Evidence boundaries:** separate simulated service, local test, live integration and deployment outcomes. Mark real/mock fidelity and `READY` (plan) vs `VERIFIED` (executed) explicitly. For new WPs opt into `verification_contract: v1` by default.
+7. **Simplification:** if a step has no applicable risk, record `NOT_APPLICABLE` inline; do not generate a new artifact only to tick a box.
+
 ## 2.1 Business Capability Decomposition（先拆业务，再拆系统）
 
 在 Architecture Decision Pass 前，先把业务语言转换为稳定的能力/责任模型。尤其适用于 enterprise、Client/FDE、跨部门平台和复杂业务系统。

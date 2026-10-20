@@ -3,7 +3,7 @@ name: software-project-standardizer
 description: SpecMeld turns a sufficiently discussed software product, client need, or change into a right-sized, execution-ready engineering package that Coding Agents can implement and keep synchronized with reality. Use for greenfield, mature brownfield, feature work, upgrades, AI/Web/App/Mini Program/SaaS/API/data/platform/library/internal/client delivery. It performs business/solution decomposition, architecture trade-offs, design-authority and physical-reality audits, progressive governance, evidence-backed gates, provider-neutral multi-agent integration, and continuous Product/Design/Contracts/Code/Test/Runtime convergence.
 ---
 
-# SpecMeld（构序） · Software Project Standardizer V1.1.1
+# SpecMeld（构序） · Software Project Standardizer V1.2.0
 
 ## 0. Mission
 
@@ -40,6 +40,18 @@ description: SpecMeld turns a sufficiently discussed software product, client ne
 17. **Governance is progressive**：控制强度由 Stage + Risk + Surface + Blast Radius 决定；高风险 Gate 不得无条件冻结无依赖 workstream。
 
 ---
+
+## 1.1 V1.2 Behavior-First Execution Contract
+
+对每个新业务 WP：在写代码前，先核实现有能力和受影响的真实路径；把需求编译成可被反证的场景、预期输出与对应 Owner。高风险/跨层任务默认使用 `verification_contract: v1`，旧 WP 可渐进迁移。
+
+- **Asset & Capability Scan**：自动盘点已有组件、布局、设计系统、依赖、API、Producer/Consumer、Schema；明确复用、集成或自研的理由，必要时运行代表性样板（详见 `ARCHITECTURE_DECISIONS.md`）。不要让用户必须懂具体技术名词才能要求完整交付。
+- **Executable Oracle**：每个关键场景明确前置数据、动作、可观察结果、测试入口、Owner、真实/模拟范围；业务 Authority 确认预期。`DEFINED ≠ IMPLEMENTED ≠ TESTED ≠ ACCEPTED`。
+- **Early Vertical Slice**：跨层工作提前指定一条最小完整业务链和整体集成 Owner；API 也能做端到端测试，不强制浏览器。只有骨架的 WP 可标骨架已交付，不可冒充业务能力。
+- **Two distinct gates**：`READY` 证明有可执行计划，不需要未来的测试结果；`VERIFIED` 必须有对应的实际执行证据和代码 SHA；集成完成需当前集成 HEAD 的真实路径证据。仅 `doctor PASS` 不能证明业务正确。
+- **Review accountability**：Builder 自测；独立 Reviewer 复核真实契约与代码；Integrator 审核整体影响面并做集成裁决，修复轮限制审查范围。
+
+使用 `references/COMPILER.md`、`references/EXECUTION.md` 和 `templates/WORK_PACKET.md`。新 WP 的字段和可执行校验见 `scripts/doctor.py`。
 
 ## 2. Standard Workflow
 
@@ -272,6 +284,10 @@ Markdown 主要解释目的、语义、边界、责任、失败模式、变更�
 
 ---
 
+## 9.1 How to read the statuses
+
+`G0 PASS` 仅表示已执行的意图/结构性检查通过；并非 `G1 READY`。WP `READY` 是**可开工**，`VERIFIED` 才是**带运行证据的功能验证**，`INTEGRATED` 仍需目标 HEAD 的集成证据。不同 Gate 不可由测试总数或模拟结果替代。
+
 ## 10. Tooling Contract
 
 ### Bootstrap
@@ -344,3 +360,5 @@ Nano 只交付 `PROJECT.toml + docs/PROJECT.md` 并运行轻量 doctor。非 nan
 - `references/BENCHMARKS.md`
 
 模板位于 `templates/`；工具位于 `scripts/`；可运行测试位于 `tests/`；golden examples 位于 `examples/`。
+
+`evals/scenarios.json` 是独立 Agent 真实任务评测候选集，默认 `NOT_RUN`；不可将 JSON 用例存在误报为 Agent 实测通过。

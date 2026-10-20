@@ -8,6 +8,14 @@ SpecMeld connects intent, product design, architecture, contracts, Coding Agent 
 
 The project is currently released first as a **Claude Code / Coding Agent Skill**. Over time it can evolve into a CLI, engineering checker, and broader developer-tooling platform. For compatibility with existing installations and projects, the technical Skill ID remains `software-project-standardizer` throughout v1.x.
 
+## V1.2.0 — Behavior-first delivery
+
+New Work Packets may use `verification_contract: v1`: `READY` requires owner-approved, observable acceptance cases (no green tests required before coding), while `VERIFIED` requires execution records with an actual command, environment, source SHA, evidence locator, and real/mock boundary. `doctor.py` validates declared evidence structure, not the truth of test outcomes. The compiler proactively examines mature components and existing capabilities, plans an early full vertical slice and one representative UI page when relevant, and separates scaffold acceptance from business behavior.
+
+G0 passing means intent-stage checks completed; it **does not** indicate G1 readiness or deployed functionality. Existing v1.x project Packs remain readable and may adopt the new WP contract progressively.
+
+The agent-level evaluation prompts live under [`evals/`](evals/). Their initial status is **NOT_RUN**; CI validates structure, not real-world agent gains.
+
 ## What it solves
 
 SpecMeld is not a template library for mass-producing engineering documents. It focuses on five things:

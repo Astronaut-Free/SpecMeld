@@ -81,8 +81,8 @@ def main() -> int:
         print(f"CREATE {rel}")
 
     if args.profile != "nano":
-        (dst / "changes").mkdir(exist_ok=True)
-        (dst / "decisions").mkdir(exist_ok=True)
+        (dst / "changes").mkdir(parents=True, exist_ok=True)
+        (dst / "decisions").mkdir(parents=True, exist_ok=True)
         print(f"READY minimal control plane created for mode={args.mode}; no extra documents generated.")
         if args.mode == "brownfield":
             print("NEXT brownfield compiler must run Reality Scan before G1; initializer intentionally does not create empty analysis docs.")

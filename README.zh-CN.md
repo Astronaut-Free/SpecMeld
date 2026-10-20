@@ -8,6 +8,14 @@ SpecMeld 把需求、产品设计、架构、Contract、Coding Agent 实施、�
 
 当前仓库首先以 **Claude Code / Coding Agent Skill** 形态发布；长期可以扩展为 CLI、工程检查器和开发者工具。为了兼容已有安装与项目，v1.x 的技术 Skill ID 仍保留为 `software-project-standardizer`。
 
+新增的真实任务评测候选见 [`evals/`](evals/)，默认状态 **NOT_RUN**；CI 只验证用例结构，不代表已证明实际 Agent 效能提升。
+
+## V1.2.0 — 行为优先与真实证据
+
+新工作包可使用 `verification_contract: v1`：`READY` 必须明确可观察验收场景，但不要求开发前就有测试通过记录；`VERIFIED` 必须有实际执行命令、环境、源代码 SHA、证据位置和真实/模拟范围。`doctor.py` 检查声明与证据结构，**不自动证明业务正确**。编译器会主动调查成熟组件及仓库已有能力，适用时安排早期完整业务链路和代表性 UI 页面；骨架交付不能冒充真实业务验收。
+
+G0 PASS 不表示 G1 可开工，更不表示功能已上线。旧工程包可渐进采用新版 Work Packet 验证契约。
+
 ## 它解决什么
 
 SpecMeld 不是“批量生成工程文档”的模板库。它主要解决五件事：
