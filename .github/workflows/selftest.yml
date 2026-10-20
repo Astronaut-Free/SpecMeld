@@ -22,6 +22,6 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Golden examples doctor
         run: |
-          python scripts/doctor.py examples/mini-ticket-triage
-          python scripts/doctor.py examples/legal-consult-mini-app
-          python scripts/doctor.py examples/knowledge-graph-atlas
+          python scripts/doctor.py --strict examples/mini-ticket-triage
+          python scripts/doctor.py --strict examples/legal-consult-mini-app
+          python scripts/doctor.py --strict examples/knowledge-graph-atlas

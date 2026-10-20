@@ -5,6 +5,7 @@
 - Added optional `verification_contract: v1` in Work Packet to gate READY against executable behavior cases and VERIFIED against actual result/SHA/environment/locators. Legacy packs remain compatible.
 - Added proactive asset reuse, UI representative page, real vertical slice, owner-approved business oracle and delta test obligations without additional fixed documents.
 - Scoped diagnostics and improved security false positives/coverage and Brownfield baseline verification.
+- Made init directory creation consistent in restricted environments; CI verifies staged Golden Packs under risk-scoped `--strict`.
 - Added regression cases for premature VERIFIED, mock-only completion, false secrets, missing evidence, and gated acceptance.
 - Added anonymized agent-level evaluation scenarios (declared NOT_RUN pending controlled A/B execution).
 
