@@ -150,9 +150,7 @@ class ToolingTests(unittest.TestCase):
         samples = [
             "AKIA1234567890ABCDEF",
             "sk-exampleSecret123456",
-            "api_key=example-secret",
             "-----BEGIN PRIVATE KEY-----",
-            "password=example-secret",
         ]
         for sample in samples:
             with self.subTest(sample=sample), tempfile.TemporaryDirectory() as td:
@@ -162,6 +160,16 @@ class ToolingTests(unittest.TestCase):
                 cp = run(DOCTOR, project)
                 self.assertNotEqual(cp.returncode, 0)
                 self.assertIn("possible secret", cp.stdout)
+
+    def test_nano_low_confidence_assignment_is_advisory(self):
+        for sample in ("api_key=example-secret", "password=example-secret"):
+            with self.subTest(sample=sample), tempfile.TemporaryDirectory() as td:
+                project = Path(td) / "nano"
+                self.assertEqual(run(INIT, project, "--name", "nano", "--profile", "nano").returncode, 0)
+                (project / "docs/PROJECT.md").write_text("# Project\n" + sample + "\n", encoding="utf-8")
+                cp = run(DOCTOR, project)
+                self.assertEqual(cp.returncode, 0, cp.stderr + cp.stdout)
+                self.assertIn("review potential secret assignment", cp.stdout)
 
     # P0-2 mobile/mini-program module
     def test_mobile_mini_program_catalog_and_coverage_are_wired(self):
@@ -217,7 +225,7 @@ class ToolingTests(unittest.TestCase):
             project = Path(td) / "golden"
             shutil.copytree(GOLDEN, project)
             p = project / "docs/engineering/work/WP-001.md"
-            text = re.sub(r"(?s)## Done\n.*$", "## Done Condition\nFinish implementation.\n", p.read_text(encoding="utf-8"))
+            text = re.sub(r"(?s)## Done\n.*?(?=\n## |\Z)", "## Done Condition\nFinish implementation.\n", p.read_text(encoding="utf-8"))
             p.write_text(text, encoding="utf-8")
             cp = run(DOCTOR, project)
             self.assertEqual(cp.returncode, 0, cp.stderr + cp.stdout)
@@ -404,8 +412,16 @@ class ToolingTests(unittest.TestCase):
         pj = project / "PROJECT.toml"
         text = pj.read_text(encoding="utf-8")
         text = text.replace('mode = "greenfield"', 'mode = "brownfield"')
-        text = text.replace('baseline_sha = ""', 'baseline_sha = "abc123"')
+        self.assertEqual(git(project, "init", "-q").returncode, 0)
+        git(project, "config", "user.name", "SpecMeld Test")
+        git(project, "config", "user.email", "example@example.invalid")
+        git(project, "add", ".")
+        self.assertEqual(git(project, "commit", "-qm", "frozen reality baseline").returncode, 0)
+        baseline = git(project, "rev-parse", "HEAD").stdout.strip()
+        text = text.replace('baseline_sha = ""', f'baseline_sha = "{baseline}"', 1)
         pj.write_text(text, encoding="utf-8")
+        entry = project / "docs/engineering/IMPLEMENTATION_ENTRY.md"
+        entry.write_text(entry.read_text(encoding="utf-8").replace("baseline_sha: greenfield", f"baseline_sha: {baseline}"), encoding="utf-8")
         lld = project / "docs/engineering/lld/LLD-001_TRIAGE_FLOW.md"
         ltxt = lld.read_text(encoding="utf-8")
         ltxt = ltxt.replace("governance_level: L2", "governance_level: L2")
@@ -498,6 +514,129 @@ class ToolingTests(unittest.TestCase):
 
 
 
+class BehaviorGateTests(unittest.TestCase):
+    """Regression fixtures from CPKG/GOPAI/third-party review, without project secrets."""
+
+    def _sample(self, root: Path, *, state: str = "READY", acceptance: bool = True, execution: str = "") -> Path:
+        shutil.copytree(GOLDEN, root)
+        wp = root / "docs/engineering/work/WP-001.md"
+        body = wp.read_text(encoding="utf-8")
+        # Start from the Ready Golden but remove its existing V1 acceptance cases.
+        body = body.split("## Behavioral Acceptance", 1)[0]
+        body = body.replace("status: READY", f"status: {state}", 1)
+        body += "\nverification_contract: v1\nintegration_required: true\n"
+        body += "\n## Behavioral Acceptance\n\n| Case ID | Preconditions / Input | Action | Expected Observable Result | Verification Seam / Command | Owner | Boundary |\n|---|---|---|---|---|---|---|\n"
+        if acceptance:
+            body += "| CASE-001 | persisted ticket fixture | POST ticket | ticket persisted and returned on GET | pytest tests/tickets | Engineering Owner | REAL |\n"
+        body += "\n## Execution Evidence\n\n| Case ID | Command | Result | Evidence Path | Code SHA | Environment | Boundary |\n|---|---|---|---|---|---|---|\n"
+        body += execution
+        wp.write_text(body, encoding="utf-8")
+        return wp
+
+    def test_ready_requires_concrete_business_case(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            self._sample(root, acceptance=False)
+            cp = run(DOCTOR, root)
+            self.assertNotEqual(cp.returncode, 0)
+            self.assertIn("requires concrete Behavioral Acceptance cases", cp.stdout)
+
+    def test_ready_does_not_require_preexisting_green_test(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            self._sample(root)
+            cp = run(DOCTOR, root)
+            self.assertEqual(cp.returncode, 0, cp.stdout + cp.stderr)
+
+    def test_verified_claim_requires_real_run_evidence(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            self._sample(root, state="VERIFIED")
+            cp = run(DOCTOR, root)
+            self.assertNotEqual(cp.returncode, 0)
+            self.assertIn("lacks passing execution evidence", cp.stdout)
+
+    def test_verified_evidence_needs_valid_sha_and_locator(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            self._sample(root, state="VERIFIED", execution="| CASE-001 | pytest tests/tickets | PASS | docs/does-not-exist.log | abc123 | CI | REAL |\n")
+            cp = run(DOCTOR, root)
+            self.assertNotEqual(cp.returncode, 0)
+            self.assertIn("missing full 40-character code SHA", cp.stdout)
+
+    def test_verified_with_locator_and_sha_is_structurally_accepted(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            sha = "a" * 40
+            self._sample(root, state="VERIFIED", execution=f"| CASE-001 | pytest tests/tickets | PASS | docs/test-run.log | {sha} | CI ubuntu | REAL |\n")
+            (root / "docs/test-run.log").write_text("Test run fixture; not proof of real business correctness.\n", encoding="utf-8")
+            cp = run(DOCTOR, root)
+            self.assertEqual(cp.returncode, 0, cp.stdout + cp.stderr)
+
+    def test_mock_only_does_not_pass_integrated_claim(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            sha = "b" * 40
+            self._sample(root, state="INTEGRATED", execution=f"| CASE-001 | pytest tests/mock | PASS | docs/test-run.log | {sha} | CI ubuntu | MOCKED |\n")
+            (root / "docs/test-run.log").write_text("mock result\n", encoding="utf-8")
+            cp = run(DOCTOR, root)
+            self.assertNotEqual(cp.returncode, 0)
+            self.assertIn("only mocked/mixed evidence", cp.stdout)
+
+    def test_explanatory_chinese_password_not_secret(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            self._sample(root)
+            (root / "docs/explanation.md").write_text("password = 用户口令的哈希值\napi_key = 由运维统一注入\n", encoding="utf-8")
+            cp = run(DOCTOR, root)
+            self.assertEqual(cp.returncode, 0, cp.stdout + cp.stderr)
+            self.assertNotIn("possible secret", cp.stdout)
+
+    def test_known_secret_like_key_still_fails(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            self._sample(root)
+            (root / "docs/leak.md").write_text("sk-ExampleKey0123456789\n", encoding="utf-8")
+            cp = run(DOCTOR, root)
+            self.assertNotEqual(cp.returncode, 0)
+            self.assertIn("possible secret", cp.stdout)
+
+    def test_env_example_is_scanned(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            self._sample(root)
+            (root / ".env.example").write_text("api_key = sk-ExampleKey0123456789\n", encoding="utf-8")
+            cp = run(DOCTOR, root)
+            self.assertNotEqual(cp.returncode, 0)
+            self.assertIn(".env.example", cp.stdout)
+
+    def test_g0_report_explicitly_skips_g1(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            self.assertEqual(run(INIT, root, "--name", "sample").returncode, 0)
+            cp = run(DOCTOR, root)
+            self.assertEqual(cp.returncode, 0, cp.stdout)
+            self.assertIn("SKIPPED: G1+", cp.stdout)
+
+    def test_invalid_brownfield_baseline_is_not_accepted(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td) / "project"
+            self._sample(root)
+            p = root / "PROJECT.toml"
+            doc = p.read_text(encoding="utf-8").replace('mode = "greenfield"', 'mode = "brownfield"').replace('baseline_sha = ""', 'baseline_sha = "abc123"', 1)
+            p.write_text(doc, encoding="utf-8")
+            cp = run(DOCTOR, root)
+            self.assertNotEqual(cp.returncode, 0)
+            self.assertIn("baseline_sha", cp.stdout)
+
+    def test_release_vision_remains_small_and_agent_neutral(self):
+        compiler = (ROOT / "references/COMPILER.md").read_text(encoding="utf-8")
+        execution = (ROOT / "references/EXECUTION.md").read_text(encoding="utf-8")
+        self.assertIn("Early vertical slice", compiler)
+        self.assertIn("Business", compiler)
+        self.assertIn("Delta Verification", execution)
+
+
 class PackageHygieneTests(unittest.TestCase):
     def test_gitignore_excludes_python_cache(self):
         ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
@@ -506,15 +645,15 @@ class PackageHygieneTests(unittest.TestCase):
 
     def test_version_is_consistent(self):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-        self.assertEqual(version, "1.1.1")
+        self.assertEqual(version, "1.2.0")
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("V1.1.1", skill)
+        self.assertIn("V1.2.0", skill)
         template = (ROOT / "templates/PROJECT.toml").read_text(encoding="utf-8")
-        self.assertIn('software-project-standardizer/1.1.1', template)
+        self.assertIn('software-project-standardizer/1.2.0', template)
         self.assertIn('brand = "SpecMeld"', template)
         for ex in [GOLDEN, LEGAL, GRAPH]:
             ex_text = (ex / "PROJECT.toml").read_text(encoding="utf-8")
-            self.assertIn('software-project-standardizer/1.1.1', ex_text)
+            self.assertIn('software-project-standardizer/1.2.0', ex_text)
             self.assertIn('brand = "SpecMeld"', ex_text)
 
     def test_skill_progressive_disclosure_limits(self):

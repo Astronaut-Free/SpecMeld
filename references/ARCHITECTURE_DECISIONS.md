@@ -21,6 +21,12 @@
 
 ---
 
+## 1.1 Reuse/Build Decision at the Implementation Asset Level
+
+For any UI/data/editor/auth/upload/graph/analytics or integration capability, inspect already installed libraries, components, layouts, style tokens, shared business services and surrounding conventions **before custom implementation**. If covered, name the existing asset + proof. Otherwise shortlist a small number of credible, license/security/runtime-compatible components, hosted services, OSS or templates. Provide: **exact asset/source and version → requirements covered → trade-offs and cost → integration seam → necessary customization → owner/verification**. High-risk irreversible choices use ADR; ordinary visual components use a WP note, not bureaucratic ADRs. When important uncertainty remains, prototype a representative runnable page or interaction using actual candidate assets and realistic UI states, and verify visual usability separately from functional wiring.
+
+Decisions are Agent-owned recommendations subject to meaningful product trade-off approval; do not require a nontechnical user to know component libraries or test-stack vocabulary.
+
 ## 2. Architecture Driver Extraction
 
 在技术选型前，至少检查以下输入；只有真正影响设计的项才需要量化到工程级别。

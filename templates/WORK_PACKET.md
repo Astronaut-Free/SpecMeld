@@ -6,6 +6,9 @@ timebox:
 issue_ref:
 governance_level: L1 | L2 | L3
 affected_surface:
+scope_kind: behavior | scaffold | design | investigation
+verification_contract: v1 # enabled by default for new WPs; old packs are compatible
+integration_required: true | false # true for critical cross-layer business flows
 integrator:
 change:
 branch_or_worktree:
@@ -55,6 +58,27 @@ pr:
 - docs/specs to synchronize:
 
 ## Invariants / Forbidden Changes
+
+## Existing Capability & Asset Audit
+
+- Repo/commit, real module/API/producer/consumer/schema authority and tested behavior:
+- Capability gap (implemented / partial / missing / out-of-scope):
+- Reuse/adopt/build decision + concrete library/source, rationale, adaptation, owner:
+
+## Behavioral Acceptance
+
+One row per critical behavior. Use stable case IDs (e.g. `CASE-001`). Expectations MUST come from the owning product/contract authority, not the output of the code being developed.
+
+| Case ID | Preconditions / Input | Action | Expected Observable Result | Verification Seam / Command | Owner | Boundary (REAL/MOCKED/MIXED) |
+|---|---|---|---|---|---|---|
+| CASE-001 | ... | ... | ... | ... | ... | REAL |
+
+## Execution Evidence
+
+Required to claim `VERIFIED`, `INTEGRATION_READY`, `INTEGRATED` or `DONE`; never at `READY`. Evidence paths/URLs are locators, not proof that assertions are correct.
+
+| Case ID | Command | Result (PASS/FAIL/NOT_RUN/BLOCKED) | Evidence Path / URL | Code SHA | Environment | Boundary (REAL/MOCKED/MIXED) |
+|---|---|---|---|---|---|---|
 
 ## Implementation Obligations
 

@@ -16,6 +16,10 @@
 
 ---
 
+## V1.2 Coverage Addendum (risk-sized)
+
+For a business WP that changes externally observable behavior, verify there is (1) an explicit business oracle with counterexample, (2) a nominated test seam and owner, (3) a planned full-path acceptance or stated mock boundary, and (4) clear Phase scope. For UI-heavy work, check reuse inventory + representative runnable screen before mass expansion; for cross-module work, check one early real vertical slice + integration owner. For `VERIFIED` claims validate run evidence for each critical case, not only the old test total. Nano/design/scaffold changes use light evidence appropriate to actual deliverable. `doctor` cannot certify correctness.
+
 ## 1. Product & UX
 
 ### 判断问题

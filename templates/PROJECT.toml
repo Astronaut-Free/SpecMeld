@@ -1,4 +1,4 @@
-standard = "software-project-standardizer/1.1.1"
+standard = "software-project-standardizer/1.2.0"
 brand = "SpecMeld"
 name = "__PROJECT_NAME__"
 mode = "__MODE__" # greenfield | brownfield | client

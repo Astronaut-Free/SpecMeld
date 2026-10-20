@@ -3,6 +3,7 @@ from pathlib import Path
 import argparse
 from datetime import date
 import re
+import math
 import subprocess
 import sys
 
@@ -202,25 +203,138 @@ def physical_audit_has_evidence(path: Path) -> bool:
     ])
 
 
-def secret_hits(root: Path) -> list[str]:
-    candidates = [root / "PROJECT.toml"]
-    for dirname in ("docs", "contracts"):
-        base = root / dirname
-        if base.exists():
-            candidates.extend(p for p in base.rglob("*") if p.is_file())
-    hits: list[str] = []
-    for path in candidates:
-        if not path.exists() or not path.is_file():
+def _secret_entropy(value: str) -> float:
+    from collections import Counter
+    counts = Counter(value)
+    return -sum((count / len(value)) * math.log2(count / len(value)) for count in counts.values()) if value else 0.0
+
+
+def secret_findings(root: Path, artifact_paths: dict) -> tuple[list[str], list[str]]:
+    """Heuristic leak detection with distinct high-confidence failures and noisy hints.
+
+    For complete coverage use a dedicated repository-wide credential scanner in CI.
+    """
+    candidates = {root / "PROJECT.toml"}
+    roots = {"docs", "contracts", "changes", "decisions", "schemas"}
+    for value in artifact_paths.values():
+        if isinstance(value, str) and value.strip():
+            roots.add(value)
+    for path in roots:
+        base = (root / path).resolve()
+        if not base.is_relative_to(root.resolve()):
             continue
-        text = read_text(path)
-        for label, pattern in SECRET_PATTERNS.items():
-            if pattern.search(text):
-                try:
-                    rel = path.relative_to(root)
-                except ValueError:
-                    rel = path
-                hits.append(f"possible secret in {Path(rel).as_posix()}: {label}")
-    return sorted(set(hits))
+        if base.is_dir():
+            candidates.update(f for f in base.rglob("*") if f.is_file())
+        elif base.is_file():
+            candidates.add(base)
+    for pattern in (".env*", "*.env", "*.env.*", "*.example", "*.sample"):
+        candidates.update(p for p in root.glob(pattern) if p.is_file())
+    issues, warnings = [], []
+    for path in sorted(candidates):
+        if not path.is_file() or path.stat().st_size > 1024 * 1024:
+            continue
+        rel = str(path.relative_to(root)).replace("\\", "/")
+        content = read_text(path)
+        for name in ("AWS access key", "API secret key", "private key"):
+            if SECRET_PATTERNS[name].search(content):
+                issues.append(f"possible secret in {rel}: {name}")
+        for match in re.finditer(r"(?im)\b(api[_-]?key|password)\s*=\s*([^\s#]+)", content):
+            field, value = match.group(1), match.group(2).strip('\"\'')
+            if not value or value.upper() in {"REPLACE_ME", "YOUR_KEY", "YOUR_PASSWORD", "ENV", "REDACTED", "EXAMPLE"}:
+                continue
+            # Human-language explanations, placeholders and semantic examples are not credentials.
+            if any(ord(c) > 127 for c in value) or re.fullmatch(r"[<{$].*", value):
+                continue
+            if len(value) >= 24 and _secret_entropy(value) >= 3.4 and re.search(r"[A-Za-z]", value) and re.search(r"[0-9]", value):
+                issues.append(f"possible secret in {rel}: high-entropy {field} literal")
+            else:
+                warnings.append(f"review potential secret assignment in {rel}: {field} (not confirmed)")
+    return sorted(set(issues)), sorted(set(warnings))
+
+
+def markdown_table_rows(text: str, section: str) -> list[list[str]]:
+    body = section_body(text, (section,))
+    if body is None:
+        return []
+    rows = []
+    for line in body.splitlines():
+        line = line.strip()
+        if not line.startswith("|"):
+            continue
+        cells = [x.strip() for x in line.strip("|").split("|")]
+        if cells and all(re.fullmatch(r":?-{3,}:?", x) for x in cells):
+            continue
+        rows.append(cells)
+    return rows[1:] if len(rows) >= 2 else []
+
+
+def meaningful_cell(value: str) -> bool:
+    s = value.strip().strip("` ")
+    return bool(s) and s.lower() not in {"...", "tbd", "todo", "pending", "n/a", "none", "-", "case-xxx", "pass?"} and not (s.startswith("<") and s.endswith(">"))
+
+
+def wp_behavior_issues(root: Path, wp: Path, txt: str) -> list[str]:
+    """Verify supplied references and coverage, not the truth of runtime assertions."""
+    result = []
+    state = metadata_value(txt, "status").split("|")[0].strip().upper()
+    level = metadata_value(txt, "governance_level")
+    if state in {"PLANNED", "BLOCKED"}:
+        return []
+    rows = markdown_table_rows(txt, "behavioral acceptance")
+    cases = {}
+    for row in rows:
+        if len(row) < 7 or not all(meaningful_cell(x) for x in row[:7]):
+            continue
+        case_id = row[0].strip("` ")
+        if re.fullmatch(r"CASE-[A-Za-z0-9_-]+", case_id):
+            cases[case_id] = row
+    if not cases:
+        result.append("v1 verification requires concrete Behavioral Acceptance cases (ID, input, action, expected, seam, owner, real/mock scope)")
+    evidence_states = {"VERIFIED", "INTEGRATION_READY", "INTEGRATED", "DONE"}
+    if state not in evidence_states:
+        return result
+    ev_rows = markdown_table_rows(txt, "execution evidence")
+    found = set()
+    real = False
+    for row in ev_rows:
+        if len(row) < 7 or not all(meaningful_cell(x) for x in row[:7]):
+            continue
+        case_id, cmd, outcome, ref, sha, environment, boundary = [x.strip("` ") for x in row[:7]]
+        if case_id not in cases:
+            result.append(f"execution evidence references unknown case: {case_id}")
+            continue
+        if outcome != "PASS":
+            result.append(f"case {case_id} lacks passing execution result (got {outcome})")
+            continue
+        if not re.fullmatch(r"[0-9a-fA-F]{40}", sha):
+            result.append(f"case {case_id} missing full 40-character code SHA")
+            continue
+        if boundary not in {"REAL", "MOCKED", "MIXED"}:
+            result.append(f"case {case_id} has invalid real/mock boundary")
+            continue
+        if not re.match(r"https://", ref):
+            target = (root / ref).resolve()
+            if not target.is_relative_to(root.resolve()) or not target.is_file():
+                result.append(f"case {case_id} evidence locator does not resolve: {ref}")
+                continue
+        found.add(case_id)
+        if boundary == "REAL":
+            real = True
+    missing = set(cases) - found
+    if missing:
+        result.append(f"v1 verified claim lacks passing execution evidence for: {', '.join(sorted(missing))}")
+    if metadata_value(txt, "integration_required").lower() == "true" and state in {"INTEGRATION_READY", "INTEGRATED", "DONE"} and not real:
+        result.append("integration-required WP cannot claim integrated delivery using only mocked/mixed evidence")
+    return result
+
+
+def valid_commit_baseline(root: Path, baseline: str) -> tuple[bool, str]:
+    if not re.fullmatch(r"[0-9a-fA-F]{7,40}", baseline):
+        return False, "baseline_sha must be 7–40 hex characters"
+    cp = subprocess.run(["git", "-C", str(root), "cat-file", "-t", baseline], text=True, capture_output=True, check=False)
+    if cp.returncode != 0 or cp.stdout.strip() != "commit":
+        return False, "baseline_sha does not resolve to a Git commit in this repo"
+    return True, ""
 
 
 def git_head(root: Path) -> str | None:
@@ -251,6 +365,10 @@ def report(stage: str, issues: list[str], warnings: list[str]) -> None:
     else:
         print(f"PASS declared-stage structural/readiness checks ({stage})")
         print("NOTE PASS is not proof of functional correctness, deployment success, or production acceptance.")
+    if stage in STAGE_ORDER:
+        level = STAGE_ORDER[stage]
+        print("CHECKED: declared-stage structure, secrets, governance, coverage, authority (when applicable), v1 WP behavior/evidence")
+        print("SKIPPED: G1+ construction readiness and WP verification" if level == 0 else "SKIPPED: business correctness, test execution, real deployment verification")
     if warnings:
         print("WARNINGS")
         for item in warnings:
@@ -260,6 +378,7 @@ def report(stage: str, issues: list[str], warnings: list[str]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check project control-plane and declared-stage structural readiness.")
     parser.add_argument("project_root", nargs="?", default=".")
+    parser.add_argument("--strict", action="store_true", help="Escalate actionable G1+ readiness warnings, not general advisory warnings")
     args = parser.parse_args()
     root = Path(args.project_root).resolve()
     issues: list[str] = []
@@ -287,8 +406,9 @@ def main() -> int:
     if str(data.get("name", "")).strip() in {"", "REPLACE_ME", "__PROJECT_NAME__"}:
         issues.append("project name is unset")
 
-    for hit in secret_hits(root):
-        issues.append(hit)
+    security_issues, security_warnings = secret_findings(root, data.get("artifact_paths", {}))
+    issues.extend(security_issues)
+    warnings.extend(security_warnings)
 
     governance = data.get("governance", {})
     governance_default = governance.get("default_level", "auto")
@@ -448,8 +568,18 @@ def main() -> int:
                     warnings.append(f"Work Packet not indexed in ENGINEERING_INDEX: {rel}")
 
     mode = data.get("mode")
-    if mode == "brownfield" and stage_level >= 1 and not str(pack.get("baseline_sha", "")).strip():
-        issues.append("brownfield G1+ requires engineering_pack.baseline_sha from verified repository reality")
+    if mode == "brownfield" and stage_level >= 1:
+        baseline = str(pack.get("baseline_sha", "")).strip()
+        if not baseline:
+            issues.append("brownfield G1+ requires engineering_pack.baseline_sha from verified repository reality")
+        else:
+            valid, reason = valid_commit_baseline(root, baseline)
+            if not valid:
+                issues.append(f"brownfield G1+ {reason}")
+            entry = core_pack_paths.get("entry")
+            entry_value = metadata_value(read_text(entry), "baseline_sha") if entry and entry.exists() else ""
+            if entry_value and baseline != entry_value:
+                issues.append("brownfield G1+ implementation-entry baseline_sha differs from engineering_pack.baseline_sha")
 
     collab = data.get("collaboration", {})
     collab_mode = collab.get("mode", "single")
@@ -518,7 +648,14 @@ def main() -> int:
             elif wp_governance not in GOVERNANCE_LEVELS:
                 issues.append(f"Work Packet invalid governance_level {wp_governance}: {wp.relative_to(root)}")
             if not wp_done_is_verifiable(wp):
-                warnings.append(f"Work Packet Done Condition lacks executable command or verifiable artifact: {wp.relative_to(root)}")
+                msg = f"Work Packet Done Condition lacks executable command or verifiable artifact: {wp.relative_to(root)}"
+                (issues if args.strict and stage_level >= 1 and wp_governance in {"L2", "L3"} and metadata_value(wp_text, "status") in {"READY", "VERIFIED", "INTEGRATED", "DONE"} else warnings).append(msg)
+            contract = metadata_value(wp_text, "verification_contract")
+            if contract and contract != "v1":
+                issues.append(f"Work Packet invalid verification_contract: {wp.relative_to(root)} ({contract})")
+            if contract == "v1":
+                for detail in wp_behavior_issues(root, wp, wp_text):
+                    issues.append(f"Work Packet {wp.relative_to(root)}: {detail}")
 
     changes_dir = root / artifact_paths.get("changes", "changes")
     if changes_dir.exists():
@@ -588,6 +725,10 @@ def main() -> int:
         if len(md_files) > 35:
             warnings.append(f"engineering pack has {len(md_files)} markdown files; verify the project truly needs this many")
 
+    if args.strict and stage_level >= 1:
+        promote = [w for w in warnings if w.startswith("acceptance artifact is empty or placeholder-only")]
+        warnings = [w for w in warnings if w not in promote]
+        issues.extend(promote)
     report(stage, issues, warnings)
     return 1 if issues else 0
 
