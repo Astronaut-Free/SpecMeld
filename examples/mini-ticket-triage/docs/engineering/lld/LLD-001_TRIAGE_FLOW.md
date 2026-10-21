@@ -2,7 +2,7 @@
 
 status: APPROVED
 owner: Engineering Owner
-governance_level: L2
+risk_level: R2
 authority_status: ALIGNED
 physical_reality_audit: NOT_APPLICABLE
 

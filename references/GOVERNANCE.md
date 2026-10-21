@@ -8,11 +8,21 @@
 
 | Level | Typical surface | Minimum controls | Extra controls |
 |---|---|---|---|
-| L1 Development | 普通 feature、bug、局部兼容改动 | branch/worktree、review、基础 CI、tests、必要 contract check | 无默认双签/重型审批 |
-| L2 Critical Surface | schema、migration、shared contract、core runtime、canonical state | L1 + compatibility/migration + contract/integration gate + rollback/forward-fix | shared ownership、baseline refresh、propagation convergence |
-| L3 Production / Security | identity、permission、canonical authority、release control plane、高风险生产 side effect | L2 + explicit owner/approval + audit + release/rollback controls | provider-native CODEOWNERS/approval/queue 等仅在适用且已验证时启用 |
+| R1 Development | 普通 feature、bug、局部兼容改动 | branch/worktree、review、基础 CI、tests、必要 contract check | 无默认双签/重型审批 |
+| R2 Critical Surface | schema、migration、shared contract、core runtime、canonical state | R1 + 独立 reviewer/approver + compatibility/migration + contract/integration gate + rollback/forward-fix | shared ownership、baseline refresh、propagation convergence |
+| R3 Production / Security | identity、permission、canonical authority、release control plane、高风险生产 side effect | R2 + 人类 owner 批准 + audit + release/rollback controls | provider-native CODEOWNERS/approval/queue 等仅在适用且已验证时启用 |
 
-`L1/L2/L3` 是治理强度，不替代 `Change Class L1/L2/L3`；二者名称相同但维度不同。为了避免混淆，项目文件中统一字段名为 `governance_level`。
+字段名统一为 `risk_level`。R1–R3 是**控制强度**；`LIFECYCLE.md` 的 Change Class L1–L3 是**变更规模/破坏性**。两者正交：一个 L1 小改如果碰到权限表，仍然是 R3。
+
+1.1 及更早的 `governance_level = L1/L2/L3` 作为弃用别名继续被 doctor 接受（映射到 R1/R2/R3 并给出 warning），`scripts/migrate_wp.py` 可批量迁移。
+
+### Approval 是 Gate 的一部分
+
+Agent 编译出的 WP 由 Agent 自己标成 READY，等于自我批改。因此：
+
+- R2/R3 的活跃 WP 必须有 `[approval].approved_by`，且不同于 `authored_by`（doctor 强制）；
+- `profile = critical` 的项目在 G1 必须有 `[engineering_pack].approved_by`；其他 profile 缺失时给 warning；
+- approver 可以是人，也可以是**未参与编译**的独立 reviewer agent；R3 必须有人类。
 
 ## 3. Applicability Matrix
 
@@ -32,11 +42,11 @@
 - G3：增加 release、migration、rollback、UAT。
 - G4：增加 operability、recovery、handover。
 
-项目较早阶段也可以提前进入 L2/L3，但必须由高返工/高风险 surface 触发，例如 identity、permission、canonical truth、不可逆 migration。
+项目较早阶段也可以提前进入 R2/R3，但必须由高返工/高风险 surface 触发，例如 identity、permission、canonical truth、不可逆 migration。
 
 ## 5. Non-blocking parallel work
 
-一个 L2/L3 change 被 Gate 阻塞时，只冻结：
+一个 R2/R3 change 被 Gate 阻塞时，只冻结：
 
 - 与它有 dependency edge 的 WP；
 - 写入相同 protected surface 的 WP；

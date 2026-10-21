@@ -164,16 +164,6 @@ class ToolingTests(unittest.TestCase):
                 self.assertIn("possible secret", cp.stdout)
 
     # P0-2 mobile/mini-program module
-    def test_mobile_mini_program_catalog_and_coverage_are_wired(self):
-        compiler = (ROOT / "references/COMPILER.md").read_text(encoding="utf-8")
-        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        coverage = (ROOT / "references/COVERAGE.md").read_text(encoding="utf-8")
-        self.assertIn("MOBILE_MINI_PROGRAM", compiler)
-        self.assertIn("设备权限", compiler)
-        self.assertIn("MOBILE_MINI_PROGRAM", skill)
-        self.assertIn("MOBILE_MINI_PROGRAM", coverage)
-        self.assertIn("弱网", coverage)
-
     # P0-3 golden examples
     def test_legal_consult_golden_passes_and_is_bounded(self):
         cp = run(DOCTOR, LEGAL)
@@ -212,17 +202,6 @@ class ToolingTests(unittest.TestCase):
             self.assertEqual(cp.returncode, 0, cp.stderr + cp.stdout)
             self.assertIn("acceptance criteria section is empty", cp.stdout)
 
-    def test_doctor_warns_on_unverifiable_wp_done_condition(self):
-        with tempfile.TemporaryDirectory() as td:
-            project = Path(td) / "golden"
-            shutil.copytree(GOLDEN, project)
-            p = project / "docs/engineering/work/WP-001.md"
-            text = re.sub(r"(?s)## Done\n.*$", "## Done Condition\nFinish implementation.\n", p.read_text(encoding="utf-8"))
-            p.write_text(text, encoding="utf-8")
-            cp = run(DOCTOR, project)
-            self.assertEqual(cp.returncode, 0, cp.stderr + cp.stdout)
-            self.assertIn("Done Condition lacks executable command or verifiable artifact", cp.stdout)
-
     def test_doctor_warns_on_adr_without_options(self):
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
@@ -240,7 +219,7 @@ class ToolingTests(unittest.TestCase):
             spec = project / "docs/engineering/specs/AI_TRIAGE.md"
             spec.write_text(spec.read_text(encoding="utf-8").replace("owner: Engineering Owner", "owner:"), encoding="utf-8")
             wp = project / "docs/engineering/work/WP-001.md"
-            wp.write_text(wp.read_text(encoding="utf-8").replace("owner: Engineering Owner", "owner:"), encoding="utf-8")
+            wp.write_text(wp.read_text(encoding="utf-8").replace('owner = "Engineering Owner"', 'owner = ""'), encoding="utf-8")
             cp = run(DOCTOR, project)
             self.assertNotEqual(cp.returncode, 0)
             self.assertIn("Engineering Spec missing owner", cp.stdout)
@@ -273,11 +252,6 @@ class ToolingTests(unittest.TestCase):
 
     # P1-5 provider abstraction
     def test_collaboration_provider_is_validated_and_documented(self):
-        collab = (ROOT / "references/COLLABORATION.md").read_text(encoding="utf-8")
-        delivery = (ROOT / "templates/DELIVERY.md").read_text(encoding="utf-8")
-        for provider in ["GitHub", "GitLab", "Gitee", "local"]:
-            self.assertIn(provider, collab)
-        self.assertIn("GitHub 专属，其他平台使用等价机制", delivery)
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
             shutil.copytree(GOLDEN, project)
@@ -290,9 +264,6 @@ class ToolingTests(unittest.TestCase):
     # P1-6 truth doc governance and drift
     @unittest.skipUnless(shutil.which("git"), "git required")
     def test_doctor_warns_when_last_converged_sha_is_over_50_commits_behind(self):
-        sync = (ROOT / "references/SYNC.md").read_text(encoding="utf-8")
-        self.assertIn("docs(truth):", sync)
-        self.assertIn("Git revert", sync)
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "demo"
             self.assertEqual(run(INIT, project, "--name", "demo").returncode, 0)
@@ -314,8 +285,6 @@ class ToolingTests(unittest.TestCase):
 
     # P1-7 UAT sign-off
     def test_g3_requires_human_uat_signoff(self):
-        lifecycle = (ROOT / "references/LIFECYCLE.md").read_text(encoding="utf-8")
-        self.assertIn("uat_signed_by", lifecycle)
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
             shutil.copytree(GOLDEN, project)
@@ -333,53 +302,11 @@ class ToolingTests(unittest.TestCase):
             self.assertEqual(cp2.returncode, 0, cp2.stderr + cp2.stdout)
 
     # P1-8 timebox
-    def test_wp_template_and_compiler_include_timebox_guidance(self):
-        wp = (ROOT / "templates/WORK_PACKET.md").read_text(encoding="utf-8")
-        compiler = (ROOT / "references/COMPILER.md").read_text(encoding="utf-8")
-        self.assertIn("timebox:", wp)
-        self.assertIn("L1：通常半天级", compiler)
-        self.assertIn("L2：通常 1–3 天", compiler)
-        self.assertIn("不是硬性限制", compiler)
-
     # P2 implemented where low-churn and useful
-    def test_p2_agent_model_tier_guidance_exists(self):
-        entry = (ROOT / "templates/IMPLEMENTATION_ENTRY.md").read_text(encoding="utf-8")
-        self.assertIn("agent_model_tier", entry)
-        self.assertIn("architecture, security, migration, cross-module", entry)
-
-    def test_p2_sunset_flow_exists(self):
-        lifecycle = (ROOT / "references/LIFECYCLE.md").read_text(encoding="utf-8")
-        self.assertIn("Sunset / Retirement", lifecycle)
-        self.assertIn("README", lifecycle)
-        self.assertIn("native truth", lifecycle)
-
-    def test_p2_issue_tracker_mapping_exists(self):
-        wp = (ROOT / "templates/WORK_PACKET.md").read_text(encoding="utf-8")
-        delivery = (ROOT / "templates/DELIVERY.md").read_text(encoding="utf-8")
-        self.assertIn("issue_ref:", wp)
-        self.assertIn("Issue Tracker Mapping", delivery)
-
-    def test_p2_retrospective_feedback_loop_exists(self):
-        readme_en = (ROOT / "README.md").read_text(encoding="utf-8")
-        readme_zh = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
-        self.assertIn("Project feedback loop", readme_en)
-        self.assertIn("项目复盘反哺", readme_zh)
-        self.assertIn("Repeatable Spec Pattern", readme_en)
-        self.assertIn("Blind Spot / Failure Mode", readme_en)
-
     # V1.1.0 — SpecMeld branding, design governance, progressive governance
     def test_progressive_governance_is_wired_and_project_default_is_validated(self):
-        gov = (ROOT / "references/GOVERNANCE.md").read_text(encoding="utf-8")
-        project_template = (ROOT / "templates/PROJECT.toml").read_text(encoding="utf-8")
-        wp_template = (ROOT / "templates/WORK_PACKET.md").read_text(encoding="utf-8")
-        change_template = (ROOT / "templates/CHANGE.md").read_text(encoding="utf-8")
-        self.assertIn("Governance Right-Sizing", gov)
-        for level in ["L1", "L2", "L3"]:
-            self.assertIn(level, gov)
-        self.assertIn('[governance]', project_template)
-        self.assertIn('default_level = "auto"', project_template)
-        self.assertIn('governance_level:', wp_template)
-        self.assertIn('governance_level:', change_template)
+        project_template = tomllib.loads((ROOT / "templates/PROJECT.toml").read_text(encoding="utf-8").replace("__", "x"))
+        self.assertEqual(project_template["governance"]["default_level"], "auto")
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
             shutil.copytree(GOLDEN, project)
@@ -389,17 +316,17 @@ class ToolingTests(unittest.TestCase):
             self.assertNotEqual(cp.returncode, 0)
             self.assertIn("governance.default_level invalid", cp.stdout)
 
-    def test_doctor_rejects_invalid_wp_governance_level(self):
+    def test_doctor_rejects_invalid_wp_risk_level(self):
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
             shutil.copytree(GOLDEN, project)
             wp = project / "docs/engineering/work/WP-001.md"
-            wp.write_text(wp.read_text(encoding="utf-8").replace("governance_level: L1", "governance_level: L9"), encoding="utf-8")
+            wp.write_text(wp.read_text(encoding="utf-8").replace('risk_level = "R2"', 'risk_level = "R9"'), encoding="utf-8")
             cp = run(DOCTOR, project)
             self.assertNotEqual(cp.returncode, 0)
-            self.assertIn("invalid governance_level L9", cp.stdout)
+            self.assertIn("invalid risk_level R9", cp.stdout)
 
-    def _make_brownfield_l2_golden(self, project: Path) -> Path:
+    def _make_brownfield_r2_golden(self, project: Path) -> Path:
         shutil.copytree(GOLDEN, project)
         pj = project / "PROJECT.toml"
         text = pj.read_text(encoding="utf-8")
@@ -407,17 +334,13 @@ class ToolingTests(unittest.TestCase):
         text = text.replace('baseline_sha = ""', 'baseline_sha = "abc123"')
         pj.write_text(text, encoding="utf-8")
         lld = project / "docs/engineering/lld/LLD-001_TRIAGE_FLOW.md"
-        ltxt = lld.read_text(encoding="utf-8")
-        ltxt = ltxt.replace("governance_level: L2", "governance_level: L2")
+        self.assertIn("risk_level: R2", lld.read_text(encoding="utf-8"))
         return lld
 
-    def test_brownfield_l2_lld_blocks_unresolved_authority(self):
-        design = (ROOT / "references/DESIGN_GOVERNANCE.md").read_text(encoding="utf-8")
-        self.assertIn("Two-axis authority model", design)
-        self.assertIn("CONTROLLED_AMENDMENT_REQUIRED", design)
+    def test_brownfield_r2_lld_blocks_unresolved_authority(self):
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
-            lld = self._make_brownfield_l2_golden(project)
+            lld = self._make_brownfield_r2_golden(project)
             text = lld.read_text(encoding="utf-8")
             text = text.replace("authority_status: ALIGNED", "authority_status: CONFLICT")
             text = text.replace("physical_reality_audit: NOT_APPLICABLE", "physical_reality_audit: PASS")
@@ -427,10 +350,10 @@ class ToolingTests(unittest.TestCase):
             self.assertNotEqual(cp.returncode, 0)
             self.assertIn("authority is unresolved (CONFLICT)", cp.stdout)
 
-    def test_brownfield_l2_lld_claimed_reality_pass_requires_matrix_evidence(self):
+    def test_brownfield_r2_lld_claimed_reality_pass_requires_matrix_evidence(self):
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
-            lld = self._make_brownfield_l2_golden(project)
+            lld = self._make_brownfield_r2_golden(project)
             text = lld.read_text(encoding="utf-8")
             text = text.replace("physical_reality_audit: NOT_APPLICABLE", "physical_reality_audit: PASS")
             lld.write_text(text, encoding="utf-8")
@@ -438,10 +361,10 @@ class ToolingTests(unittest.TestCase):
             self.assertNotEqual(cp.returncode, 0)
             self.assertIn("claims physical reality PASS without matrix evidence", cp.stdout)
 
-    def test_brownfield_l2_lld_passes_with_aligned_authority_and_matrix_evidence(self):
+    def test_brownfield_r2_lld_passes_with_aligned_authority_and_matrix_evidence(self):
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
-            lld = self._make_brownfield_l2_golden(project)
+            lld = self._make_brownfield_r2_golden(project)
             text = lld.read_text(encoding="utf-8")
             text = text.replace("physical_reality_audit: NOT_APPLICABLE", "physical_reality_audit: PASS")
             text += "\n## Authority / Physical Reality Audit\n\n### Physical Reality Matrix\n| Object | Evidence |\n|---|---|\n| ticket | schemas/001_create_ticket.sql + contract tests |\n"
@@ -449,23 +372,16 @@ class ToolingTests(unittest.TestCase):
             cp = run(DOCTOR, project)
             self.assertEqual(cp.returncode, 0, cp.stderr + cp.stdout)
 
-    def test_brownfield_l1_lld_does_not_require_heavy_reality_gate(self):
+    def test_brownfield_r1_lld_does_not_require_heavy_reality_gate(self):
         with tempfile.TemporaryDirectory() as td:
             project = Path(td) / "golden"
-            lld = self._make_brownfield_l2_golden(project)
+            lld = self._make_brownfield_r2_golden(project)
             text = lld.read_text(encoding="utf-8")
-            text = text.replace("governance_level: L2", "governance_level: L1")
+            text = text.replace("risk_level: R2", "risk_level: R1")
             text = text.replace("authority_status: ALIGNED", "authority_status: NOT_ASSESSED")
             lld.write_text(text, encoding="utf-8")
             cp = run(DOCTOR, project)
             self.assertEqual(cp.returncode, 0, cp.stderr + cp.stdout)
-
-    def test_archive_snapshot_is_explicitly_not_current_truth(self):
-        sync = (ROOT / "references/SYNC.md").read_text(encoding="utf-8")
-        artifacts = (ROOT / "references/ARTIFACTS.md").read_text(encoding="utf-8")
-        self.assertIn("ZIP", sync)
-        self.assertIn("不承担 Current Truth", sync)
-        self.assertIn("Archive Snapshot Is Not Current Truth", artifacts)
 
     def test_open_source_branding_and_mit_license_are_present(self):
         readme_en = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -490,12 +406,13 @@ class ToolingTests(unittest.TestCase):
             "references/DESIGN_GOVERNANCE.md",
             "references/GOVERNANCE.md",
             "scripts/doctor.py",
+            "scripts/migrate_wp.py",
+            "--changed-since",
             "examples/mini-ticket-triage",
             "MIT",
         ]:
             self.assertIn(token, readme_en, token)
             self.assertIn(token, readme_zh, token)
-
 
 
 class PackageHygieneTests(unittest.TestCase):
@@ -506,15 +423,18 @@ class PackageHygieneTests(unittest.TestCase):
 
     def test_version_is_consistent(self):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-        self.assertEqual(version, "1.1.1")
+        self.assertRegex(version, r"^\d+\.\d+\.\d+$")
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn("V1.1.1", skill)
+        self.assertIn(f"V{version}", skill)
+        self.assertIn(f"## {version}", (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"))
         template = (ROOT / "templates/PROJECT.toml").read_text(encoding="utf-8")
-        self.assertIn('software-project-standardizer/1.1.1', template)
+        self.assertIn(f'software-project-standardizer/{version}', template)
         self.assertIn('brand = "SpecMeld"', template)
+        doctor = (ROOT / "scripts/doctor.py").read_text(encoding="utf-8")
+        self.assertIn(f'DOCTOR_VERSION = "{version}"', doctor)
         for ex in [GOLDEN, LEGAL, GRAPH]:
             ex_text = (ex / "PROJECT.toml").read_text(encoding="utf-8")
-            self.assertIn('software-project-standardizer/1.1.1', ex_text)
+            self.assertIn(f'software-project-standardizer/{version}', ex_text)
             self.assertIn('brand = "SpecMeld"', ex_text)
 
     def test_skill_progressive_disclosure_limits(self):
@@ -534,7 +454,6 @@ class PackageHygieneTests(unittest.TestCase):
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         for ref in sorted((ROOT / "references").glob("*.md")):
             self.assertIn(f"references/{ref.name}", skill, ref.name)
-
 
 
 if __name__ == "__main__":

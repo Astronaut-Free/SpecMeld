@@ -1,10 +1,10 @@
 # Change: <id> — <title>
 
 status: PROPOSED
-class: L1 | L2 | L3
+class: L1 | L2 | L3 # Change Class: scope of the change (see LIFECYCLE.md)
 owner:
 base:
-governance_level: L1 | L2 | L3
+risk_level: R1 | R2 | R3 # control depth (see GOVERNANCE.md)
 affected_surface:
 
 ## Goal / Why
@@ -28,7 +28,7 @@ affected_surface:
 - Retirement / old-path exit condition:
 - Propagation convergence verdict: PASS | CONCERNS | FAIL
 
-## Authority / Reality Conflict (Brownfield or L2/L3 when applicable)
+## Authority / Reality Conflict (Brownfield or R2/R3 when applicable)
 
 - classification: NONE | IMPLEMENTATION_DRIFT | DOCUMENT_DRIFT | DRAFT_DRIFT | CONTRACT_GAP | AUTHORITY_CONFLICT | CONTROLLED_AMENDMENT_REQUIRED | PHYSICAL_REALITY_BLOCKED
 - approved intent authority:

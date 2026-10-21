@@ -154,7 +154,7 @@ Brownfield critical surface 追加：**Design Authority / Physical Reality** 是
 
 ## 9. Organization & Change
 
-追加检查：**Governance Right-Sizing**。当前 controls 是否与 Stage + Risk + Surface + Blast Radius 匹配；普通 feature 是否被错误套用 L3 控制；某一阻塞是否不必要地冻结无依赖 workstream。
+追加检查：**Governance Right-Sizing**。当前 controls 是否与 Stage + Risk + Surface + Blast Radius 匹配；普通 feature 是否被错误套用 R3 控制；某一阻塞是否不必要地冻结无依赖 workstream。
 
 ### 判断问题
 - Owner/DRI/RACI 或等价责任是否清楚？

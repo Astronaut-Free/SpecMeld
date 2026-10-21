@@ -5,7 +5,7 @@ entry_state: READY
 baseline_sha: greenfield
 base_branch: main
 current_wp: `docs/engineering/work/WP-001.md`
-agent_model_tier: strong
+risk_level: R3
 
 ## Mission
 Build the consent → consult session → advisory AI/fallback vertical slice without adding payment collection or autonomous legal actions.

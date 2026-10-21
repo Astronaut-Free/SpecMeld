@@ -98,6 +98,24 @@ Release Candidate 前：
 4. 在同一 Change 中收敛
 5. 无法判断则升为 open decision，不得悄悄选一边
 
+### Machine drift guard
+
+“No silent drift” 需要一个 Agent 绕不过去的检查点，而不只是一条规则：
+
+```bash
+python $SKILL/scripts/doctor.py <project> --changed-since origin/main
+```
+
+如果本次变更集（相对 `<ref>` 的 diff + 未跟踪文件）改动了 native truth（`[native_truth]` 声明的路径、`contracts/`、`schemas/`），却没有改动任何 `docs/`、`changes/`、`decisions/` 或 truth 文件，doctor 以 `DRIFT_UNSYNCED_NATIVE_TRUTH` 失败。
+
+推荐接入点：
+
+- 本地 pre-commit：`--changed-since HEAD`；
+- PR/MR check：`--changed-since <target-branch>`；
+- Coding Agent 在请求 review 前运行一次，并把输出写入 WP Evidence。
+
+该检查只证明“有同步动作”，不证明同步内容正确；内容是否正确仍由 review 判断。
+
 
 ## Truth Document Change Governance
 

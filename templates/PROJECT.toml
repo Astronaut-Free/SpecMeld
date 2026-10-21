@@ -1,4 +1,4 @@
-standard = "software-project-standardizer/1.1.1"
+standard = "software-project-standardizer/1.2.0"
 brand = "SpecMeld"
 name = "__PROJECT_NAME__"
 mode = "__MODE__" # greenfield | brownfield | client
@@ -29,6 +29,8 @@ plan = "docs/engineering/IMPLEMENTATION_PLAN.md"
 acceptance = "docs/engineering/acceptance/ACCEPTANCE.md"
 baseline_sha = ""
 last_converged_sha = ""
+compiled_by = "" # who compiled the pack (agent or human)
+approved_by = "" # independent approver of G1 readiness; required for profile=critical
 
 [artifact_paths]
 changes = "changes"
@@ -45,8 +47,10 @@ pull_request_template = ".github/pull_request_template.md"
 
 
 [governance]
-default_level = "auto" # auto | L1 | L2 | L3; change/WP can override per surface
+default_level = "auto" # auto | R1 | R2 | R3; each Change/WP sets its own risk_level per surface
 progressive = true
+# doctor_compat = "1.1"          # upgrade transition: 1.2 gates become warnings
+# doctor_compat_until = "YYYY-MM-DD"
 
 [collaboration]
 mode = "single" # single | multi-human | multi-agent | hybrid

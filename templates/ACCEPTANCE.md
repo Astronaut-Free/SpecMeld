@@ -4,8 +4,10 @@
 status: DRAFT | ACTIVE | CONVERGED
 owner:
 
-| Requirement / Acceptance | Source | Spec / Contract | Work Packet | Test / Eval | Evidence | Status |
-|---|---|---|---|---|---|---|
+每条验收项使用稳定 ID（`AC-01`、`AC-02` …）。WP 通过 `acceptance_refs` 引用；doctor 会报告未知引用和未被任何 WP 覆盖的验收项。ID 一经发布不重用。
+
+| ID | Requirement / Acceptance | Source | Spec / Contract | Work Packet | Test / Eval | Evidence | Status |
+|---|---|---|---|---|---|---|---|
 
 ## Golden / Critical Flows
 

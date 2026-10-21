@@ -5,7 +5,7 @@ entry_state: READY
 baseline_sha: greenfield
 base_branch: main
 current_wp: `docs/engineering/work/WP-001.md`
-agent_model_tier: strong
+risk_level: R2
 
 ## Mission
 Implement the canonical evidence/provenance core before any graph-specific optimization becomes authoritative.

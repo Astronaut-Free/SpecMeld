@@ -45,24 +45,31 @@ SpecMeld 不是“批量生成工程文档”的模板库。它主要解决五�
 
 保留旧 Skill ID 是为了避免 v1.x 用户、`PROJECT.toml` 和既有安装突然失效。品牌与技术标识在 v1.x 解耦；如果未来更改 invocation ID，会按 breaking change 处理。
 
-## Quick Start
+## 安装
+
+仓库根目录本身就是 skill。按 v1.x Skill ID 克隆到 skills 目录：
 
 ```bash
-python scripts/init_project.py ./my-project --name my-project --mode greenfield --profile standard --archetype web
-python scripts/init_engineering_pack.py ./my-project
-python scripts/doctor.py ./my-project
+git clone https://github.com/Astronaut-Free/SpecMeld.git ~/.claude/skills/software-project-standardizer
 ```
 
-Claude Code 安装示例：把仓库中的 `software-project-standardizer/` 目录放到：
+Windows（PowerShell）：
 
-```text
-~/.claude/skills/software-project-standardizer/
+```powershell
+git clone https://github.com/Astronaut-Free/SpecMeld.git "$env:USERPROFILE\.claude\skills\software-project-standardizer"
 ```
 
-Windows 通常对应：
+需要 Python 3.11+，无第三方依赖。
 
-```text
-C:\Users\<you>\.claude\skills\software-project-standardizer\
+## Quick Start
+
+脚本在 skill 目录里（下文记作 `$SKILL`），不在你的项目里：
+
+```bash
+SKILL=~/.claude/skills/software-project-standardizer
+python $SKILL/scripts/init_project.py ./my-project --name my-project --mode greenfield --profile standard --archetype web
+python $SKILL/scripts/init_engineering_pack.py ./my-project
+python $SKILL/scripts/doctor.py ./my-project
 ```
 
 调用时可以说：
@@ -74,8 +81,8 @@ C:\Users\<you>\.claude\skills\software-project-standardizer\
 单人短期小项目：
 
 ```bash
-python scripts/init_project.py ./weekend-tool --name weekend-tool --profile nano --archetype internal
-python scripts/doctor.py ./weekend-tool
+python $SKILL/scripts/init_project.py ./weekend-tool --name weekend-tool --profile nano --archetype internal
+python $SKILL/scripts/doctor.py ./weekend-tool
 ```
 
 Nano 只维护 `PROJECT.toml + docs/PROJECT.md`，不编译完整 Engineering Pack。
@@ -94,27 +101,29 @@ Production / Repository Reality
 → READY Work Packets
 ```
 
-对 Brownfield 的 L2/L3 critical surface，设计前必须先核对 Physical Schema、Constraints、Grants、Runtime、Machine Contracts、Tests、Transaction / Idempotency / Audit 边界。遇到冲突时不得自行“综合一个合理方案”，而要进入 Drift / Authority Conflict / Controlled Amendment 流程。
+对 Brownfield 的 R2/R3 critical surface，设计前必须先核对 Physical Schema、Constraints、Grants、Runtime、Machine Contracts、Tests、Transaction / Idempotency / Audit 边界。遇到冲突时不得自行“综合一个合理方案”，而要进入 Drift / Authority Conflict / Controlled Amendment 流程。
 
 详见 `references/DESIGN_GOVERNANCE.md`。
 
 ## Progressive Governance
 
-治理强度不是全局固定值：
+控制强度按 Change/WP 的 `risk_level` 设置，不是全局固定值：
 
 ```text
-L1 Development
+R1 Development
 普通 feature / bug
 → branch + review + CI + tests
 
-L2 Critical Surface
+R2 Critical Surface
 schema / migration / shared contract / core runtime / canonical
-→ L1 + compatibility + migration + integration gate
+→ R1 + 独立批准人 + compatibility + migration + integration gate
 
-L3 Production / Security
+R3 Production / Security
 identity / permission / canonical authority / release control plane
-→ L2 + explicit ownership + approval + audit + release controls
+→ R2 + 人类批准 + audit + release controls
 ```
+
+`risk_level`（控制强度）与 Change Class L1–L3（变更规模）正交：改一行权限表依然是 R3。
 
 一个高风险 Gate 被阻塞，只冻结依赖它或写同一受保护 surface 的工作；无依赖 workstream 可以继续。
 
@@ -122,29 +131,56 @@ identity / permission / canonical authority / release control plane
 
 ## Doctor 的边界
 
-`doctor.py` 是**结构、声明阶段与确定性治理检查器**。`PASS` 不等于业务正确、生产可用或发布成功。
+`doctor.py` 是声明阶段的**确定性 Gate**。`PASS` 不等于业务正确、生产可用或发布成功。
 
-它可以检查：
+G1 会阻断：
 
-- PROJECT control plane / Coverage / owner / exception；
-- Engineering Pack readiness；
-- Brownfield baseline；
-- secret 泄漏；
-- Spec / WP owner；
-- 空验收、不可验证 Done Condition、ADR 无备选等启发式问题；
-- 文档 convergence 漂移；
-- governance level / Brownfield L2-L3 design reality audit 状态。
+- Work Packet DAG 有环或依赖了不存在的 WP；
+- `read_set` 路径既不存在、也不由依赖产出；
+- 声明 `parallel_safe_with` 的 WP 之间 `write_set` 重叠；
+- 活跃 WP 的 `[done]` 没有可执行命令或可验证产物；
+- 引用了不存在的验收项 `AC-xx`；
+- R2/R3 WP 没有独立于作者的批准人；
+- 声明的 native truth（contract、schema 等）缺失；
+- 以及原有控制面检查：coverage、owner、exception、readiness 标记、secret、Brownfield baseline 与 design-reality audit。
+
+另外对以下情况给 warning：风险等级疑似低报、无序 WP 共享 write set、验收项无 WP 覆盖、ADR 无备选、收敛过期。
+
+```bash
+python $SKILL/scripts/doctor.py <project> --strict              # warning 也阻断
+python $SKILL/scripts/doctor.py <project> --format json         # 带稳定 code，给 Agent/CI 用
+python $SKILL/scripts/doctor.py <project> --changed-since main  # drift guard，适合 pre-commit / PR check
+```
 
 业务正确性仍由真实 tests/evals/review/runtime evidence 证明。
+
+## 从 1.1 升级
+
+1.2 的 G1 更严格，1.1 下通过的项目升级后可能失败。这正是目的：新出现的失败是原本就存在的缺口。
+
+```bash
+python $SKILL/scripts/migrate_wp.py ./my-project/docs/engineering/work                       # 预演
+python $SKILL/scripts/migrate_wp.py ./my-project/docs/engineering/work --write --authored-by "agent:compiler"
+python $SKILL/scripts/doctor.py ./my-project
+```
+
+迁移只搬运能找到的内容，不编造命令、路径或批准人。如需先升级、再按计划补齐，可在 `PROJECT.toml` 设定有期限的过渡：
+
+```toml
+[governance]
+doctor_compat = "1.1"
+doctor_compat_until = "2026-12-31"
+```
+
+`governance_level = L1/L2/L3` 仍作为 `risk_level = R1/R2/R3` 的弃用别名被接受。
 
 ## Self-test
 
 ```bash
-python -m py_compile scripts/*.py
 python -m unittest discover -s tests -v
-python scripts/doctor.py examples/mini-ticket-triage
-python scripts/doctor.py examples/legal-consult-mini-app
-python scripts/doctor.py examples/knowledge-graph-atlas
+python scripts/doctor.py --strict examples/mini-ticket-triage
+python scripts/doctor.py --strict examples/legal-consult-mini-app
+python scripts/doctor.py --strict examples/knowledge-graph-atlas
 ```
 
 CI 同时覆盖 Linux / Windows 与 Python 3.11 / 3.13。

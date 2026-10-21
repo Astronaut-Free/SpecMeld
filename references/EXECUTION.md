@@ -174,6 +174,6 @@ CD 区分 artifact build、registry、environment promotion、migration、deploy
 
 `Production/Repo Reality → Authority & Truth Audit → Drift/Gap Analysis → G0–G4 Assessment → Right-sized Compilation → Evolution Plan → READY WPs`
 
-对 governance L2/L3 surface，在写 LLD/设计前加载 `DESIGN_GOVERNANCE.md`。对普通 L1 feature 不强制完整 Physical Reality Matrix。
+对 R2/R3 surface，在写 LLD/设计前加载 `DESIGN_GOVERNANCE.md`。对普通 R1 feature 不强制完整 Physical Reality Matrix。
 
 如果一个高治理等级 WP 被阻塞，只阻塞 dependency/write-set 相关下游；无依赖 workstream 可继续。详见 `GOVERNANCE.md`。

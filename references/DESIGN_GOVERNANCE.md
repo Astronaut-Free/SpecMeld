@@ -20,7 +20,7 @@ Historical Draft、旧 ZIP、archive 只能提供背景，不能覆盖 Current T
 
 ## 3. Brownfield pre-design audit order
 
-对 L2/L3 governance surface，在提出新设计前按顺序核验：
+对 R2/R3 surface，在提出新设计前按顺序核验：
 
 1. Approved/Frozen Authority 与 current Change/ADR；
 2. Physical Schema；
@@ -49,7 +49,7 @@ Historical Draft、旧 ZIP、archive 只能提供背景，不能覆盖 Current T
 - `CONTROLLED_AMENDMENT_REQUIRED`：现实证明现有批准设计需受控修改；
 - `PHYSICAL_REALITY_BLOCKED`：缺少/冲突的 schema/grant/constraint/transaction 使设计无法安全冻结。
 
-`AUTHORITY_CONFLICT / CONTROLLED_AMENDMENT_REQUIRED / PHYSICAL_REALITY_BLOCKED / UNKNOWN` 在相关 L2/L3 surface 解除前不得 Freeze。
+`AUTHORITY_CONFLICT / CONTROLLED_AMENDMENT_REQUIRED / PHYSICAL_REALITY_BLOCKED / UNKNOWN` 在相关 R2/R3 surface 解除前不得 Freeze。
 
 ## 5. Physical Reality Matrix
 

@@ -1,78 +1,72 @@
-# WP-XXX: <title>
++++
+# Machine-checked by scripts/doctor.py. Keep facts here; keep reasoning in the body below.
+id = "WP-XXX"
+title = ""
+status = "PLANNED"        # PLANNED | READY | IN_PROGRESS | BUILT | VERIFIED | INTEGRATION_READY | INTEGRATED | DONE | BLOCKED
+owner = ""
+risk_level = "R1"         # R1 development | R2 critical surface | R3 production/security (references/GOVERNANCE.md)
+affected_surface = []     # e.g. ["schema", "public api"]; doctor warns when the surface implies a higher risk_level
+depends_on = []           # WP ids that must be integrated first; cycles and unknown ids fail G1
+parallel_safe_with = []   # only when write_set is disjoint; overlap fails G1
+read_set = []             # paths/globs that exist now or are written by a dependency
+write_set = []            # paths/globs this WP may modify
+acceptance_refs = []      # AC-xx ids from the acceptance artifact
+checkpoints = []          # intermediate verifications; split the WP if unverified change would outgrow one review
+issue_ref = ""
+integrator = ""
+change = ""
 
-status: PLANNED | READY | IN_PROGRESS | BUILT | VERIFIED | INTEGRATION_READY | INTEGRATED | DONE | BLOCKED
-owner:
-timebox:
-issue_ref:
-governance_level: L1 | L2 | L3
-affected_surface:
-integrator:
-change:
-branch_or_worktree:
-base_branch:
-baseline_sha:
-final_sha:
-pr:
+[done]
+commands = []             # executable checks, e.g. "python -m pytest tests/contract -q"
+artifacts = []            # verifiable outputs, e.g. "contracts/openapi.yaml"
+
+[approval]
+authored_by = ""          # who compiled this WP (agent or human)
+approved_by = ""          # required for R2/R3 before READY; must differ from authored_by
+
+[execution]
+branch_or_worktree = ""
+base_branch = ""
+baseline_sha = ""
+final_sha = ""
+pr = ""
++++
+
+# WP-XXX: <title>
 
 ## Goal
 
+一到三句话：这个 WP 完成后系统多了什么能力、边界在哪里。
+
 ## Done Condition
 
-## Dependencies / Blockers
-
-- prerequisite WPs/PRs:
-- merge-before / merge-after constraints:
-
-## Change Propagation (if applicable)
-
-- propagation_from / changed truth:
-- affected_consumers:
-- propagation_state:
-- migration_wave:
-- target_contract/schema/version/baseline:
-- stale downstream baseline handling:
-
-## Parallelism / Integration
-
-- parallel_safe_with:
-- write-set overlap / shared hotspots:
-- owned contracts/schema/migrations:
-- integration order:
-- handoff target:
-
-## Read Set
-
-- Specs:
-- LLDs:
-- Contracts/Schemas:
-- Existing code/patterns:
-
-## Expected Write Set
-
-- modules/files:
-- contracts/schema/migrations:
-- tests/evals:
-- docs/specs to synchronize:
+解释 `[done]` 中命令/产物为什么足以证明完成；需要人工判断的部分写明由谁判断。
 
 ## Invariants / Forbidden Changes
 
 ## Implementation Obligations
 
-## Test / Eval Commands
+## Change Propagation (only when shared truth changes)
+
+- changed truth / contract:
+- affected consumers and propagation state:
+- migration wave:
+- stale downstream baseline handling:
 
 ## Review Lenses
+
+R1：self-check + CI；R2：独立 reviewer（不是作者）+ contract/migration review；R3：R2 + 人类批准与审计。
 
 ## Rollback / Recovery Notes
 
 ## Evidence
 
-- commands run:
-- results:
-- PR/SHA:
+- commands run / results:
+- PR / SHA:
 - dependency SHAs/PRs used:
-- base/current-target verification:
-- reviewer/integrator verdict:
-- screenshots/runtime evidence if applicable:
+- reviewer / integrator verdict:
+- runtime evidence (if applicable):
+- NOT_RUN / BLOCKED_TOOLING (if any, with reason):
 
 ## Convergence
 

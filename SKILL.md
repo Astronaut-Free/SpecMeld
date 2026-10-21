@@ -1,9 +1,9 @@
 ---
 name: software-project-standardizer
-description: SpecMeld turns a sufficiently discussed software product, client need, or change into a right-sized, execution-ready engineering package that Coding Agents can implement and keep synchronized with reality. Use for greenfield, mature brownfield, feature work, upgrades, AI/Web/App/Mini Program/SaaS/API/data/platform/library/internal/client delivery. It performs business/solution decomposition, architecture trade-offs, design-authority and physical-reality audits, progressive governance, evidence-backed gates, provider-neutral multi-agent integration, and continuous Product/Design/Contracts/Code/Test/Runtime convergence.
+description: Compile a sufficiently discussed product, client need or change into a right-sized, execution-ready engineering pack (PROJECT.toml, current truth docs, contracts, Work Packets with a dependency DAG, acceptance) that coding agents implement from, then keep docs/contracts/code/tests converged and gated by a deterministic doctor. Use when the user asks to standardize or engineer a project, turn a PRD/discussion into dev-ready specs or tasks, split work for multiple agents, onboard or audit a brownfield repo, plan a schema/contract change across modules, or check G0–G4 readiness; also for 项目标准化、工程化、出开发文档/工程包、拆 WP/任务、多 Agent 并行、存量项目梳理、跨模块变更、上线前检查. Do not use for a single-file fix, a quick question, or ideas still being brainstormed (run the G0 intake check first).
 ---
 
-# SpecMeld（构序） · Software Project Standardizer V1.1.1
+# SpecMeld（构序） · Software Project Standardizer V1.2.0
 
 ## 0. Mission
 
@@ -16,6 +16,18 @@ description: SpecMeld turns a sufficiently discussed software product, client ne
 保持收敛。
 
 这不是固定模板库，也不是瀑布式“先写完所有文档再编码”。对外使用流程应简单，内部方法论可以完整；复杂度通过 progressive disclosure 和 risk-sized rigor 控制。
+
+### 0.1 G0 Intake Check（编译前先判断“聊清楚了没有”）
+
+能回答下面五问才开始编译；答不上的项先向用户追问（一次最多 3 个问题），或记入 `[unknowns].items`，不要用假设填平：
+
+1. **Who / Job**：谁在什么场景下要完成什么？
+2. **Scope / Non-goals**：这一版明确做什么、不做什么？
+3. **Core flow + failure**：主流程是什么？最关键的失败场景发生时系统应如何表现？
+4. **Constraints**：平台、数据、合规、集成、已有系统的硬约束是什么？
+5. **Acceptance**：怎样算做完？至少一条可执行或可观察的验收项。
+
+不适用：单文件修复、纯问答、仍在发散的头脑风暴。小而短期的个人项目用 `profile=nano`。
 
 ---
 
@@ -37,7 +49,8 @@ description: SpecMeld turns a sufficiently discussed software product, client ne
 14. **Handover by design**：Client/FDE/长期维护项目必须可由新团队独立接管。
 15. **Do not fake tooling**：无法执行命令、测试、部署或验证时，报告 `NOT_RUN / BLOCKED_TOOLING / UNKNOWN`，不得伪造通过证据。
 16. **Authority before proposal**：Brownfield critical design 先核 Approved Intent 与 Physical Reality；冲突必须分类，不得由 Agent 自行折中。
-17. **Governance is progressive**：控制强度由 Stage + Risk + Surface + Blast Radius 决定；高风险 Gate 不得无条件冻结无依赖 workstream。
+17. **Governance is progressive**：控制强度（`risk_level` R1/R2/R3）由 Stage + Risk + Surface + Blast Radius 决定；高风险 Gate 不得无条件冻结无依赖 workstream。
+18. **Gates are machine-checked, readiness is approved**：能被确定性检查的约束写进 frontmatter/TOML 让 doctor 检查；`READY` 不是作者自封的状态——R2/R3 WP 与 critical profile 的 pack 需要不同于作者的 `approved_by`。
 
 ---
 
@@ -47,11 +60,11 @@ description: SpecMeld turns a sufficiently discussed software product, client ne
 
 **Greenfield**：提炼 Problem、Users、Jobs/Scenarios、Scope/Non-goals、核心功能/流程、业务规则、平台、NFR/约束、Acceptance、已知/未知。
 
-**Brownfield**：先验证 repo/module、build/test baseline、DB/migration、constraints/grants、API/event、accepted runtime、CI/CD、UX/design system、observability、现有文档漂移和已有工程惯例。对 L2/L3 critical surface，先执行 Design Authority / Physical Reality Audit；旧 Draft、ZIP、archive 不得覆盖 current repository/runtime truth。冲突不得静默综合，按 `IMPLEMENTATION_DRIFT / DOCUMENT_DRIFT / DRAFT_DRIFT / CONTRACT_GAP / AUTHORITY_CONFLICT / CONTROLLED_AMENDMENT_REQUIRED / PHYSICAL_REALITY_BLOCKED` 分类。
+**Brownfield**：先验证 repo/module、build/test baseline、DB/migration、constraints/grants、API/event、accepted runtime、CI/CD、UX/design system、observability、现有文档漂移和已有工程惯例。对 R2/R3 critical surface，先执行 Design Authority / Physical Reality Audit；旧 Draft、ZIP、archive 不得覆盖 current repository/runtime truth。冲突不得静默综合，按 `IMPLEMENTATION_DRIFT / DOCUMENT_DRIFT / DRAFT_DRIFT / CONTRACT_GAP / AUTHORITY_CONFLICT / CONTROLLED_AMENDMENT_REQUIRED / PHYSICAL_REALITY_BLOCKED` 分类。
 
 ### B. Project Classification
 
-写入 `PROJECT.toml`：mode、profile、archetype、lifecycle、owners、coverage、stage、truth paths、native truth、engineering pack status、collaboration、governance default。每个 Change/WP 再按实际 surface 指定 `governance_level`，不要把项目级默认误当成所有改动的最高强度。`profile=nano` 是单人短期小项目的独立轻量路径：只维护 `PROJECT.toml + docs/PROJECT.md`，不编译完整 Engineering Pack。
+写入 `PROJECT.toml`：mode、profile、archetype、lifecycle、owners、coverage、stage、truth paths、native truth、engineering pack status、collaboration、governance default。每个 Change/WP 再按实际 surface 指定 `risk_level`（R1/R2/R3），不要把项目级默认误当成所有改动的最高强度。`profile=nano` 是单人短期小项目的独立轻量路径：只维护 `PROJECT.toml + docs/PROJECT.md`，不编译完整 Engineering Pack。
 
 ### C. Coverage Audit
 
@@ -100,6 +113,8 @@ Nano 项目只使用 `docs/PROJECT.md` 合并真值。
 
 禁止固定生成“14 份标准文档”。
 
+Work Packet 的机器事实写在 TOML frontmatter（`+++ … +++`，见 `templates/WORK_PACKET.md`）：`depends_on / read_set / write_set / acceptance_refs / [done] / [approval]`。正文只写目标、理由、不变式和风险。WP 粒度由“两次验证之间允许积累多少未经验证的改动”决定（`checkpoints`），不按人天切分。
+
 Compiler 规则见 `references/COMPILER.md`。
 
 ### G. G1 Development Ready
@@ -111,13 +126,15 @@ Compiler 规则见 `references/COMPILER.md`。
 - Architecture boundary / domain / data ownership 明确；
 - 并行开发依赖的 API/Event/Schema Contract 明确；
 - persistence/migration/runtime/security/test baseline 明确；
-- WP DAG 可执行；
+- WP DAG 无环、依赖 ID 存在；每个活跃 WP 的 `read_set` 路径现在存在或由其依赖产出；声明 `parallel_safe_with` 的 WP 之间 `write_set` 不重叠；
+- 每个活跃 WP 的 `[done]` 含可执行命令或可验证产物；验收项有稳定 `AC-xx` ID 并被 WP 的 `acceptance_refs` 覆盖；
+- R2/R3 WP 有独立于作者的 `approved_by`；
 - `IMPLEMENTATION_ENTRY.md` 可直接作为施工入口；
 - 不存在会让两个实现者造出不同系统的关键 UNKNOWN；
-- Brownfield L2/L3 design 不存在未解除的 Authority Conflict / Amendment Required / Physical Reality Block；
+- Brownfield R2/R3 design 不存在未解除的 Authority Conflict / Amendment Required / Physical Reality Block；
 - 当前 governance controls 与 Change/WP 的风险和 surface 相匹配；
 - 核心控制文档 `sps:readiness` 已从 `DRAFT` 更新为 `READY`；
-- `doctor.py` 对声明阶段通过。
+- `doctor.py --strict` 对声明阶段通过（warning 需逐条处理或记录理由）。
 
 达到后：
 
@@ -138,7 +155,7 @@ Coding Agent：
 5. 执行指定 tests/evals；
 6. 独立 Review；
 7. 更新 Evidence；
-8. 同步受影响 Truth/Spec/LLD/Native Truth；
+8. 同步受影响 Truth/Spec/LLD/Native Truth；提交前运行 `doctor.py --changed-since <base>`，native truth 改了而 Truth/Spec/Change 没改会被拦下；
 9. 通过 Integration/Convergence Gate 后再进入下一个 WP。
 
 执行、协作与发布规则见 `references/EXECUTION.md`、`references/COLLABORATION.md`。
@@ -164,7 +181,7 @@ Coding Agent：
 
 Brownfield critical design 先做 `Intent Authority ↔ Reality Evidence` 对齐，再允许 PROPOSE。Physical Schema/Constraint/Grant、accepted runtime、machine contract、tests、transaction/idempotency/audit boundary 是设计输入，不是事后补充。适用规则见 `references/DESIGN_GOVERNANCE.md`。
 
-治理按需分级：普通 feature 用 L1；schema/migration/shared contract/core runtime/canonical 通常进入 L2；identity/permission/canonical authority/release control plane 等高风险面才进入 L3。Stage 只增加必要控制，不把所有工作全局升级。详见 `references/GOVERNANCE.md`。
+治理按需分级（`risk_level`）：普通 feature 用 R1；schema/migration/shared contract/core runtime/canonical 通常进入 R2；identity/permission/canonical authority/release control plane 等高风险面才进入 R3。R 级别是控制强度，与 §6 的 Change Class（L1–L3，变更规模）是两个维度。Stage 只增加必要控制，不把所有工作全局升级。详见 `references/GOVERNANCE.md`。
 
 ---
 
@@ -187,6 +204,8 @@ Brownfield critical design 先做 `Intent Authority ↔ Reality Evidence` 对齐
 ---
 
 ## 6. Version / Change / Retirement
+
+Change Class（变更规模，与 `risk_level` 正交）：
 
 - L1 小改：Change + WP；
 - L2 Feature：Impact + Spec delta + WP + Acceptance；
@@ -267,40 +286,49 @@ Markdown 主要解释目的、语义、边界、责任、失败模式、变更�
 | 跨模块共享 truth 变化 | `references/PROPAGATION.md` |
 | 文档/代码持续同步与收敛 | `references/SYNC.md` |
 | Brownfield Design Authority / Physical Reality / Freeze | `references/DESIGN_GOVERNANCE.md` |
-| 治理强度分级 / Applicability / Right-Sizing | `references/GOVERNANCE.md` |
+| 风险分级 R1–R3 / Applicability / Right-Sizing | `references/GOVERNANCE.md` |
 | 需要理解方法来源和取舍 | `references/BENCHMARKS.md` |
 
 ---
 
 ## 10. Tooling Contract
 
+脚本位于本 skill 目录下，不在用户项目里。下文 `$SKILL` 指本 SKILL.md 所在目录（例如 `~/.claude/skills/software-project-standardizer`），项目路径用用户项目根目录。需要 Python 3.11+，无第三方依赖。
+
 ### Bootstrap
 
 ```bash
-python scripts/init_project.py <project> --name <name> --mode <greenfield|brownfield|client> --profile <nano|lite|standard|critical>
-python scripts/init_engineering_pack.py <project>
+python $SKILL/scripts/init_project.py <project> --name <name> --mode <greenfield|brownfield|client> --profile <nano|lite|standard|critical>
+python $SKILL/scripts/init_engineering_pack.py <project>
 ```
 
-`init_project.py` 只创建最小控制面；`profile=nano` 只创建 `PROJECT.toml + docs/PROJECT.md`，`init_engineering_pack.py` 对 nano 直接跳过。`--mode brownfield` 不会为了“看起来不同”而批量生成空 Reality Scan 文件。Brownfield 差异发生在后续 compiler/reality-scan 行为和 G1 验证上。
+`init_project.py` 只创建最小控制面；`profile=nano` 只创建 `PROJECT.toml + docs/PROJECT.md`，`init_engineering_pack.py` 对 nano 直接跳过。`--mode brownfield` 不会批量生成空 Reality Scan 文件。WP/Spec/LLD 由 compiler 按需生成，不由脚本批量脚手架。
 
 ### Doctor
 
 ```bash
-python scripts/doctor.py <project>
+python $SKILL/scripts/doctor.py <project> [--strict] [--format json] [--changed-since <git-ref>]
 ```
 
-`doctor.py` 是**结构与声明阶段 readiness checker**，不是业务正确性证明。`PASS` 只表示当前声明 Gate 的可机器验证约束通过；功能正确性仍必须由 tests/evals/review/runtime evidence 证明。
+- `doctor.py` 是**确定性 Gate**，不是业务正确性证明。`PASS` 只表示声明阶段的可机器验证约束成立。
+- `--format json`：给 Agent/CI 消费，每条问题带稳定 `code`；`--strict`：warning 也阻断。
+- `--changed-since`：drift guard，适合放进 pre-commit 或 PR check。
+- 工具无法运行时，不修改 ACL/安全策略来“让它能跑”；报告 `BLOCKED_TOOLING` 并说明未观测证据。
 
-工具无法运行时，不修改 ACL/安全策略来“让它能跑”；报告 `BLOCKED_TOOLING` 并说明未观测证据。
+### 从 1.1 升级
+
+```bash
+python $SKILL/scripts/migrate_wp.py <project>/docs/engineering/work            # dry run
+python $SKILL/scripts/migrate_wp.py <project>/docs/engineering/work --write --authored-by "<compiler>"
+```
+
+迁移只做机械搬运，不编造命令、路径或批准人；之后按 doctor 报告补齐。过渡期可在 `[governance]` 设 `doctor_compat = "1.1"` 与 `doctor_compat_until`，把 1.2 新增 Gate 暂时降为 warning。
 
 ### Skill Self-test
 
 ```bash
 python -m unittest discover -s tests -v
-python -m py_compile scripts/*.py
 ```
-
-仓库内 `.github/workflows/selftest.yml` 可用于 CI 验证 skill 自身。
 
 ---
 
@@ -327,20 +355,4 @@ Nano 只交付 `PROJECT.toml + docs/PROJECT.md` 并运行轻量 doctor。非 nan
 
 ---
 
-## 12. Complete Reference Index
-
-- `references/COVERAGE.md`
-- `references/COMPILER.md`
-- `references/SOLUTION_ARCHITECTURE.md`
-- `references/ARCHITECTURE_DECISIONS.md`
-- `references/ARTIFACTS.md`
-- `references/COLLABORATION.md`
-- `references/EXECUTION.md`
-- `references/LIFECYCLE.md`
-- `references/PROPAGATION.md`
-- `references/SYNC.md`
-- `references/DESIGN_GOVERNANCE.md`
-- `references/GOVERNANCE.md`
-- `references/BENCHMARKS.md`
-
-模板位于 `templates/`；工具位于 `scripts/`；可运行测试位于 `tests/`；golden examples 位于 `examples/`。
+模板位于 `templates/`；工具位于 `scripts/`；测试位于 `tests/`；golden examples 位于 `examples/`（`examples/mini-ticket-triage/docs/engineering/work/WP-001.md` 是参考 WP）；行为评测协议位于 `evals/`。

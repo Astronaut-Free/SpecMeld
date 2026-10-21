@@ -35,10 +35,10 @@
 
 ## Progressive Governance
 
-- Project default governance: auto | L1 | L2 | L3
-- L1 surface controls:
-- L2 critical-surface controls:
-- L3 production/security controls:
+- Project default risk level: auto | R1 | R2 | R3
+- R1 development controls:
+- R2 critical-surface controls:
+- R3 production/security controls:
 - Rules that are stage-gated rather than globally mandatory:
 - How unrelated work continues when one protected surface is blocked:
 

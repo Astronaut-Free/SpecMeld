@@ -68,13 +68,13 @@
 
 在 Artifact Plan 前判断每个 Change/WP 的治理等级，而不是全项目统一拉满：
 
-- `L1`：普通 feature/bug/local compatible change；
-- `L2`：schema/migration/shared contract/core runtime/canonical；
-- `L3`：identity/permission/canonical authority/release control plane/high-risk production effect。
+- `R1`：普通 feature/bug/local compatible change；
+- `R2`：schema/migration/shared contract/core runtime/canonical；
+- `R3`：identity/permission/canonical authority/release control plane/high-risk production effect。
 
 判断因子：`Stage + Risk + Affected Surface + Blast Radius`。项目 `[governance].default_level = auto` 时由 compiler 决定；Change/WP 可以显式记录更高或更低但必须给出理由。
 
-Brownfield L2/L3 设计在生成/冻结 LLD 前必须先走 `DESIGN_GOVERNANCE.md` 的 Physical Reality Audit。
+Brownfield R2/R3 设计在生成/冻结 LLD 前必须先走 `DESIGN_GOVERNANCE.md` 的 Physical Reality Audit。
 
 ## 3. Artifact Plan 规则
 
@@ -157,7 +157,7 @@ Brownfield L2/L3 设计在生成/冻结 LLD 前必须先走 `DESIGN_GOVERNANCE.m
 
 ## 5. LLD 触发规则
 
-**Design Governance trigger**：Brownfield + governance L2/L3 的 LLD 必须在 Freeze 前记录 `authority_status` 与 `physical_reality_audit`；不得先写“合理设计”再回头找证据。
+**Design Governance trigger**：Brownfield + `risk_level` R2/R3 的 LLD 必须在 Freeze 前记录 `authority_status` 与 `physical_reality_audit`；不得先写“合理设计”再回头找证据。
 
 生成 LLD，当任一成立：
 
@@ -194,30 +194,32 @@ Brownfield L2/L3 设计在生成/冻结 LLD 前必须先走 `DESIGN_GOVERNANCE.m
 
 ### WP 字段
 
-- id / title / owner / status / timebox / issue_ref
-- goal / done condition
-- dependencies
-- prerequisite baseline
-- read set
-- write set
-- invariants / forbidden changes
-- implementation obligations
-- native contract/schema changes
-- test/eval commands
-- review lenses
-- evidence requirements
-- truth/spec/lld sync targets
-- rollback notes if applicable
+机器事实写在 TOML frontmatter（`templates/WORK_PACKET.md`），doctor 直接校验：
 
-### WP Timebox Guidance
+| 字段 | 作用 | doctor 在 G1 的检查 |
+|---|---|---|
+| `id / title / status / owner` | 身份与状态 | owner 必填；status 取值合法；至少一个 WP 处于 READY 或之后 |
+| `risk_level` + `affected_surface` | 控制强度 | 取值 R1–R3；surface/write_set 暗示更高等级时 warning |
+| `depends_on` | DAG 边 | 依赖 ID 存在；无环 |
+| `read_set` | 最小上下文 | 路径现在存在，或由传递依赖的 `write_set` 产出 |
+| `write_set` | 冲突面 | 声明 `parallel_safe_with` 的 WP 之间不得重叠；无序且重叠时 warning |
+| `acceptance_refs` | 追溯 | 引用的 `AC-xx` 必须存在；未被任何 WP 覆盖的 AC 给 warning |
+| `[done].commands / artifacts` | 完成证明 | 活跃 WP 至少一项 |
+| `[approval]` | 授权 | R2/R3 活跃 WP 需要 `approved_by` 且不同于 `authored_by` |
+| `checkpoints` | 粒度 | 不检查；用于拆分判断 |
 
-时间盒是规划参考，不是硬性限制，也不能为了“按时”牺牲 Gate：
+正文只承载机器无法表达的东西：goal、done 的理由、invariants / forbidden changes、implementation obligations、propagation、review lenses、rollback、evidence 与 convergence。
 
-- L1：通常半天级；
-- L2：通常 1–3 天；
-- L3：通常按周拆分并设置中间验证点。
+### WP 粒度：按验证点，不按人天
 
-超过参考量级时优先重新检查范围、依赖和是否应该拆 WP，而不是机械延长。
+WP 的大小由“两次验证之间允许积累多少未经验证的改动”决定，而不是由人天决定——Agent 的执行速度会持续变化，验证纪律不应随之变化：
+
+- 一个 WP 应能在一次独立 review 中被完整理解；
+- 每个 `checkpoint` 是一次可执行验证（测试、迁移往返、contract check、eval）；
+- 如果在下一个 checkpoint 之前需要改动多个 ownership 边界或多个 contract，拆 WP；
+- R2/R3 WP 至少在 contract/schema 冻结点设置一个 checkpoint。
+
+`timebox` 可以作为给人看的计划参考保留在正文里，但不是 Gate，也不能为了“按时”跳过 checkpoint。
 
 ### Change Impact Graph / Migration Waves
 
