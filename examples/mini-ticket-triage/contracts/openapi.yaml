@@ -7,7 +7,7 @@ paths:
     post:
       responses:
         '201':
-          description: Ticket created
+          description: Ticket created (persisted before any AI call)
   /tickets/{id}:
     get:
       parameters:
@@ -17,4 +17,14 @@ paths:
           schema: { type: string }
       responses:
         '200':
-          description: Ticket state
+          description: Ticket state including suggestion and final classification
+  /tickets/{id}/confirm:
+    post:
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Human confirmed or overrode the suggestion; actor and timestamp recorded

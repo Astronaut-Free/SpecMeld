@@ -45,24 +45,31 @@ SpecMeld is not a template library for mass-producing engineering documents. It 
 
 The v1.x Skill ID is intentionally stable so existing installations, `PROJECT.toml` files, and automations do not break. Brand and technical identifier are decoupled in v1.x; changing the invocation ID later would be treated as a breaking change.
 
-## Quick Start
+## Install
+
+The repository root *is* the skill. Clone it into your skills directory under the v1.x Skill ID:
 
 ```bash
-python scripts/init_project.py ./my-project --name my-project --mode greenfield --profile standard --archetype web
-python scripts/init_engineering_pack.py ./my-project
-python scripts/doctor.py ./my-project
+git clone https://github.com/Astronaut-Free/SpecMeld.git ~/.claude/skills/software-project-standardizer
 ```
 
-For Claude Code, place the `software-project-standardizer/` directory under:
+On Windows (PowerShell):
 
-```text
-~/.claude/skills/software-project-standardizer/
+```powershell
+git clone https://github.com/Astronaut-Free/SpecMeld.git "$env:USERPROFILE\.claude\skills\software-project-standardizer"
 ```
 
-On Windows this is typically:
+Requires Python 3.11+; no third-party packages.
 
-```text
-C:\Users\<you>\.claude\skills\software-project-standardizer\
+## Quick Start
+
+Scripts live in the skill directory (`$SKILL` below), not in your project:
+
+```bash
+SKILL=~/.claude/skills/software-project-standardizer
+python $SKILL/scripts/init_project.py ./my-project --name my-project --mode greenfield --profile standard --archetype web
+python $SKILL/scripts/init_engineering_pack.py ./my-project
+python $SKILL/scripts/doctor.py ./my-project
 ```
 
 A typical invocation is:
@@ -74,8 +81,8 @@ A typical invocation is:
 For a solo short-lived project:
 
 ```bash
-python scripts/init_project.py ./weekend-tool --name weekend-tool --profile nano --archetype internal
-python scripts/doctor.py ./weekend-tool
+python $SKILL/scripts/init_project.py ./weekend-tool --name weekend-tool --profile nano --archetype internal
+python $SKILL/scripts/doctor.py ./weekend-tool
 ```
 
 Nano keeps only `PROJECT.toml + docs/PROJECT.md` and skips the full Engineering Pack.
@@ -94,27 +101,29 @@ Production / Repository Reality
 → READY Work Packets
 ```
 
-For Brownfield L2/L3 critical surfaces, design work must first verify Physical Schema, Constraints, Grants, Runtime, Machine Contracts, Tests, and Transaction / Idempotency / Audit boundaries. When evidence conflicts, the Agent must not synthesize a convenient compromise; it must enter Drift / Authority Conflict / Controlled Amendment handling.
+For Brownfield R2/R3 critical surfaces, design work must first verify Physical Schema, Constraints, Grants, Runtime, Machine Contracts, Tests, and Transaction / Idempotency / Audit boundaries. When evidence conflicts, the Agent must not synthesize a convenient compromise; it must enter Drift / Authority Conflict / Controlled Amendment handling.
 
 See `references/DESIGN_GOVERNANCE.md`.
 
 ## Progressive Governance
 
-Governance strength is not globally fixed:
+Control depth is set per Change/WP via `risk_level`, not globally:
 
 ```text
-L1 Development
+R1 Development
 ordinary feature / bug
 → branch + review + CI + tests
 
-L2 Critical Surface
+R2 Critical Surface
 schema / migration / shared contract / core runtime / canonical
-→ L1 + compatibility + migration + integration gate
+→ R1 + independent approver + compatibility + migration + integration gate
 
-L3 Production / Security
+R3 Production / Security
 identity / permission / canonical authority / release control plane
-→ L2 + explicit ownership + approval + audit + release controls
+→ R2 + human approval + audit + release controls
 ```
+
+`risk_level` (control depth) is orthogonal to Change Class L1–L3 (change size): a one-line change to a permission table is still R3.
 
 A blocked high-risk Gate should freeze only work that depends on it or writes to the same protected surface. Independent workstreams may continue.
 
@@ -122,29 +131,56 @@ See `references/GOVERNANCE.md`.
 
 ## What `doctor.py` proves — and what it does not
 
-`doctor.py` is a **deterministic structural, stage, and governance checker**. A `PASS` does not prove business correctness, production readiness, or successful deployment.
+`doctor.py` is a **deterministic gate** for the declared stage. A `PASS` does not prove business correctness, production readiness, or successful deployment.
 
-It can check:
+At G1 it blocks on:
 
-- PROJECT control plane / Coverage / owner / exception;
-- Engineering Pack readiness;
-- Brownfield baseline;
-- secret leakage;
-- Spec / WP owner fields;
-- heuristic issues such as empty acceptance criteria, unverifiable Done Conditions, and ADRs without alternatives;
-- documentation convergence drift;
-- governance level and Brownfield L2/L3 design-reality audit state.
+- Work Packet DAG cycles or unknown dependency IDs;
+- `read_set` paths that neither exist nor are produced by a dependency;
+- write-set overlap between WPs declared `parallel_safe_with`;
+- active WPs without an executable command or verifiable artifact in `[done]`;
+- acceptance references (`AC-xx`) that do not exist;
+- R2/R3 WPs without an approver independent of the author;
+- declared native truth (contracts, schemas, …) that is missing;
+- plus the control-plane checks: coverage, owners, exceptions, readiness markers, secrets, Brownfield baseline and design-reality audit.
+
+It warns on understated risk levels, unordered WPs that share a write set, acceptance items no WP covers, ADRs without alternatives, and stale convergence.
+
+```bash
+python $SKILL/scripts/doctor.py <project> --strict              # warnings block too
+python $SKILL/scripts/doctor.py <project> --format json         # stable issue codes for agents/CI
+python $SKILL/scripts/doctor.py <project> --changed-since main  # drift guard for pre-commit / PR checks
+```
 
 Business correctness still requires real tests, evals, reviews, and runtime evidence.
+
+## Upgrading from 1.1
+
+1.2 makes G1 stricter, so a project that passed under 1.1 may now fail. That is the point: the new failures are gaps that already existed.
+
+```bash
+python $SKILL/scripts/migrate_wp.py ./my-project/docs/engineering/work                       # dry run
+python $SKILL/scripts/migrate_wp.py ./my-project/docs/engineering/work --write --authored-by "agent:compiler"
+python $SKILL/scripts/doctor.py ./my-project
+```
+
+The migration only moves what it can find; it never invents commands, paths or approvals. To upgrade first and close gaps on a schedule, set a bounded transition in `PROJECT.toml`:
+
+```toml
+[governance]
+doctor_compat = "1.1"
+doctor_compat_until = "2026-12-31"
+```
+
+`governance_level = L1/L2/L3` is still accepted as a deprecated alias for `risk_level = R1/R2/R3`.
 
 ## Self-test
 
 ```bash
-python -m py_compile scripts/*.py
 python -m unittest discover -s tests -v
-python scripts/doctor.py examples/mini-ticket-triage
-python scripts/doctor.py examples/legal-consult-mini-app
-python scripts/doctor.py examples/knowledge-graph-atlas
+python scripts/doctor.py --strict examples/mini-ticket-triage
+python scripts/doctor.py --strict examples/legal-consult-mini-app
+python scripts/doctor.py --strict examples/knowledge-graph-atlas
 ```
 
 CI covers Linux / Windows and Python 3.11 / 3.13.

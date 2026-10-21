@@ -5,9 +5,8 @@ entry_state: NOT_READY | READY | BLOCKED
 baseline_sha:
 base_branch:
 engineering_pack:
-current_wp:
-governance_level: L1 | L2 | L3
-agent_model_tier: auto # economy | standard | strong | auto
+current_wp: # path to the WP to execute now; doctor fails G1 if it does not exist
+risk_level: R1 | R2 | R3
 
 ## Mission
 
@@ -50,11 +49,12 @@ WP-001 -> WP-002 -> {WP-003, WP-004} -> WP-005
 - designated Integrator:
 - merge order / queue policy:
 
-## Agent Model Tier Guidance
+## Review Depth by Risk
 
-- mechanical/local WP: economy or standard model is acceptable when tests/contracts are strong.
-- architecture, security, migration, cross-module/shared-contract WP: prefer strong model.
-- `auto` means the orchestrator selects based on risk; model tier never relaxes the WP acceptance gate.
+- R1：self-check + CI + 指定 tests。
+- R2：R1 + 独立 reviewer（不是作者；可以是另一个 agent 或人）+ contract/migration/compatibility review。
+- R3：R2 + 人类批准、审计记录、release/rollback 控制。
+- 选用哪个模型/agent 由 orchestrator 决定；无论选择什么，都不放松上面的 Gate。
 
 ## Current Work Packet
 

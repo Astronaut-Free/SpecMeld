@@ -63,6 +63,6 @@
 
 `DRAFT → PHYSICAL_AUDIT → AUTHORITY_CHECK → CONSISTENCY_CHECK → SCENARIO_VALIDATION → INDEPENDENT_REVIEW → FREEZE_CANDIDATE → EXACT_SHA → FROZEN`
 
-这些状态不要求分别生成文件。证据可以落在 LLD、Change、ADR、PR/MR、tests 或 machine artifact。Brownfield L2/L3 设计若 `authority_status` 为 `AMENDMENT_REQUIRED / CONFLICT / UNKNOWN`，或 `physical_reality_audit` 为 `REQUIRED / BLOCKED`，不得宣称 Freeze。
+这些状态不要求分别生成文件。证据可以落在 LLD、Change、ADR、PR/MR、tests 或 machine artifact。Brownfield R2/R3 设计若 `authority_status` 为 `AMENDMENT_REQUIRED / CONFLICT / UNKNOWN`，或 `physical_reality_audit` 为 `REQUIRED / BLOCKED`，不得宣称 Freeze。
 
-治理等级与 Change Class 是不同维度：Change Class 描述变更规模/破坏性，governance_level 描述该 surface 需要多强的控制。详见 `GOVERNANCE.md`。
+风险等级与 Change Class 是不同维度：Change Class（L1–L3）描述变更规模/破坏性，`risk_level`（R1–R3）描述该 surface 需要多强的控制。详见 `GOVERNANCE.md`。

@@ -5,7 +5,7 @@ entry_state: READY
 baseline_sha: greenfield
 base_branch: main
 current_wp: `docs/engineering/work/WP-001.md`
-agent_model_tier: standard
+risk_level: R2
 
 ## Mission
 Build the minimum ticket persistence/API first, then the async AI triage path without changing the advisory-only product rule.

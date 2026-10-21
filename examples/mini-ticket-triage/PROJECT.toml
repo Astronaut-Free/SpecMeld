@@ -1,4 +1,4 @@
-standard = "software-project-standardizer/1.1.1"
+standard = "software-project-standardizer/1.2.0"
 brand = "SpecMeld"
 name = "mini-ticket-triage"
 mode = "greenfield"
@@ -28,6 +28,8 @@ plan = "docs/engineering/IMPLEMENTATION_PLAN.md"
 acceptance = "docs/engineering/acceptance/ACCEPTANCE.md"
 baseline_sha = ""
 last_converged_sha = ""
+compiled_by = "agent:specmeld-compiler"
+approved_by = "Tech Lead (example)"
 
 [artifact_paths]
 changes = "changes"

@@ -1,5 +1,68 @@
 # Changelog
 
+## 1.2.0 — Doctor Becomes a Real G1 Gate
+
+1.1.1 的 doctor 会对“WP 循环依赖 + Read Set 指向不存在的文件 + 已声明 contract 被删除 + Done 只写一句 *It should pass.*”的工程包输出 `PASS (G1_BUILD_READY)`。1.2.0 的核心是让 SKILL.md 里写的 G1 条件由机器兑现，并让 readiness 从“作者自封”变成“独立批准”。G0–G4 和 Change Class L1–L3 的语义不变。
+
+> **Behavior change**：G1 更严格。1.1 下 PASS 的项目升级后可能 FAIL——新出现的失败是原本就存在的缺口。用 `scripts/migrate_wp.py` 迁移 WP，或用有期限的 `doctor_compat = "1.1"` 过渡。
+
+### Structured Work Packets
+- WP 机器事实改为 TOML frontmatter（`+++ … +++`）：`depends_on / parallel_safe_with / read_set / write_set / acceptance_refs / checkpoints / [done] / [approval]`。依旧零依赖（`tomllib`）。
+- 旧的行内元数据继续可读，给 `WP_LEGACY_FORMAT` warning。
+- 新增 `scripts/migrate_wp.py`：默认 dry-run，幂等，只做机械搬运，从不编造命令、路径或批准人。
+  - Tests: `MigrationTests.*`, `TemplateContractTests.*`.
+
+### New G1 gates (blocking)
+- `WP_DEPENDENCY_CYCLE`、`WP_DEPENDENCY_UNKNOWN`、`WP_DUPLICATE_ID`、`WP_FRONTMATTER_INVALID`、`WP_NONE_READY`。
+- `WP_READ_SET_UNRESOLVED`：路径必须现在存在，或由传递依赖的 `write_set` 产出。
+- `WP_PARALLEL_WRITE_OVERLAP`：声明 `parallel_safe_with` 的 WP 之间 write set 重叠。
+- `WP_DONE_UNVERIFIABLE`：活跃 WP 无可执行命令或可验证产物（结构化 WP 只认 `[done]`；旧格式要求反引号命令/路径，不再接受 “tests pass” 这类关键词）。
+- `WP_ACCEPTANCE_REF_UNKNOWN`：引用了不存在的 `AC-xx`。
+- `WP_APPROVAL_MISSING` / `WP_SELF_APPROVED`：R2/R3 活跃 WP 需要不同于作者的批准人。
+- `PACK_APPROVAL_MISSING`（critical profile 阻断，其余 warning）/ `PACK_SELF_APPROVED`。
+- `NATIVE_TRUTH_MISSING`：已声明的 native truth 在 G1 缺失由 warning 升为阻断。
+- `ENTRY_CURRENT_WP_MISSING`：`IMPLEMENTATION_ENTRY.current_wp` 必须存在。
+  - Tests: `DagTests.*`, `ReadSetTests.*`, `ParallelismTests.*`, `DoneAndAcceptanceTests.*`, `RiskAndApprovalTests.*`, `PackApprovalTests.*`, `EntryAndNativeTruthTests.*`, `AdversarialRegressionTests.test_v111_false_pass_is_now_a_fail`.
+
+### New warnings
+- `WP_RISK_UNDERSTATED`（surface/write set 暗示更高风险）、`WP_ID_MISMATCH`、`WP_UNORDERED_WRITE_OVERLAP`、`ACCEPTANCE_ORPHAN`、`ACCEPTANCE_NO_IDS`、`WP_WRITE_SET_EMPTY`、`WP_ACCEPTANCE_REFS_EMPTY`、`WP_STATUS_MISSING`。
+
+### Doctor interface
+- `--format json`：每条问题带稳定 `code`，`facts` 含 WP 拓扑序、验收 ID、WP 摘要。
+- `--strict`：warning 也阻断；三个 golden example 与 CI 均以 `--strict` 运行。
+- `--changed-since <ref>`：drift guard。native truth（声明路径、`contracts/`、`schemas/`，含未跟踪新文件）改动而 Truth/Spec/Change/ADR 未改动时 `DRIFT_UNSYNCED_NATIVE_TRUTH`。
+- `--compat 1.1` / `[governance].doctor_compat` + `doctor_compat_until`：1.2 新增阻断降为 warning；过期后自动恢复阻断。
+  - Tests: `StrictModeTests.*`, `DriftGuardTests.*`, `AdversarialRegressionTests.test_compat_mode_downgrades_new_gates_only`, `AdversarialRegressionTests.test_expired_compat_mode_blocks`, `GoldenExamplesTests.test_json_report_shape_and_topological_order`.
+
+### Terminology: `risk_level` R1–R3
+- 治理强度改名为 `risk_level = R1 | R2 | R3`，消除与 Change Class L1–L3 的同名冲突；两者正交。
+- `governance_level = L1/L2/L3` 作为弃用别名继续被接受并给 warning。
+  - Tests: `RiskAndApprovalTests.test_legacy_governance_level_is_accepted_as_alias`, `test_doctor_rejects_invalid_wp_risk_level`.
+
+### Golden examples
+- 修正 `mini-ticket-triage/WP-001`：schema + migration + public API 原先标为最低等级（且 timebox 写着 L2），现为 R2 并有独立批准人；补全为参考 WP。
+- 补上 SYSTEM.md 已描述、但 `openapi.yaml` 缺失的 confirm 接口。
+- `legal-consult-mini-app/WP-001` 涉及跨用户授权与敏感日志，按 GOVERNANCE 规则定为 R3。
+- 三个示例的验收项都有 `AC-xx` ID 并被 WP 覆盖；`--strict` 零 warning。
+
+### Skill entry
+- `description` 改为触发导向：何时用、中文触发词、何时不用。
+- 新增 G0 Intake Check（五问）：答不上先追问或记入 unknowns，不用假设填平。
+- 新增规则 18：*Gates are machine-checked, readiness is approved*。
+- WP 粒度从“人天 timebox”改为“验证点 checkpoints”；`agent_model_tier` 改为“按风险决定 review 深度”，不再绑定当下的模型分层。
+- 脚本路径改为 `$SKILL/scripts/...`；删除与 §9 重复的 reference 索引。
+
+### Install / docs
+- 修正 README 安装说明：仓库根目录即 skill，直接 `git clone` 到 `~/.claude/skills/software-project-standardizer`。
+- 双语 README 新增 “Upgrading from 1.1 / 从 1.1 升级”；`SYNC.md` 新增 Machine drift guard；`COMPILER.md` 新增 WP 字段 ↔ doctor 检查对照表；`GOVERNANCE.md` 新增 Approval 规则。
+
+### Evals
+- 新增 `evals/`：with/without 对照协议、rubric、3 个案例（greenfield、brownfield contract change、underspecified intent）与机械指标脚本 `evals/score.py`。尚无基线结果——下一步是跑出第一组数据。
+
+### Tests
+- 新增 `tests/test_gate.py`（43 个行为测试，断言稳定 issue code）。
+- 删除只断言文案存在的测试（timebox、agent_model_tier、sunset、issue tracker、retro、archive、mobile catalog wiring）；其余既有测试迁移到 R 术语。
+
 ## 1.1.1 — Bilingual Open-Source README
 
 Documentation-only open-source readiness patch. No G0–G4, L1–L3, doctor gate, compiler, template-count, or runtime behavior semantics changed.

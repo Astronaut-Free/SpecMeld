@@ -5,7 +5,7 @@ owner:
 linked_spec:
 linked_change:
 last_verified_sha:
-governance_level: L1 | L2 | L3
+risk_level: R1 | R2 | R3
 authority_status: NOT_ASSESSED | ALIGNED | DRIFT_REPAIRED | AMENDMENT_REQUIRED | CONFLICT | UNKNOWN
 physical_reality_audit: NOT_APPLICABLE | REQUIRED | PASS | BLOCKED
 
@@ -21,7 +21,7 @@ physical_reality_audit: NOT_APPLICABLE | REQUIRED | PASS | BLOCKED
 - jobs/workers:
 - external dependencies:
 
-## Authority / Physical Reality Audit (Brownfield L2/L3 when applicable)
+## Authority / Physical Reality Audit (Brownfield R2/R3 when applicable)
 
 > Do not duplicate schema/contracts. Record the evidence needed to prove the design does not violate current reality.
 
